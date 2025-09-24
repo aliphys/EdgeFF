@@ -26,7 +26,6 @@ layers = [784,100,100,100] # go wider, not deeper!  https://cdn.aaai.org/ojs/208
 length_network = len(layers)-1
 print('layers: ' + str(length_network))
 print(layers)
-Train_flag = True  # True False
 
 # Command line argument parser
 def parse_arguments():
@@ -47,6 +46,8 @@ def parse_arguments():
                         help='Goodness threshold for Forward-Forward training (default: 2.0)')
     parser.add_argument('--run_energy_analysis', action='store_true', default=False,
                         help='Run energy consumption analysis')
+    parser.add_argument('--train', action='store_true', default=False,
+                        help='Train a new model (default: False - load existing model)')
     return parser.parse_args()
 
 # load data
@@ -638,6 +639,7 @@ print(f"  Run specialization: {args.run_specialization}")
 print(f"  Run energy analysis: {args.run_energy_analysis}")
 print(f"  Goodness threshold: {args.goodness_threshold}")
 print(f"  Confidence threshold multiplier: {args.confidence_threshold_multiplier}")
+print(f"  Train: {args.train}")
 # train data
 inputs, targets = next(iter(train_loader))
 
@@ -651,7 +653,7 @@ X_train, X_val, y_train, y_val = train_test_split(inputs, targets, test_size=val
 
 
 # train
-if Train_flag:
+if args.train:
     x_pos = overlay_y_on_x(X_train, y_train)
     y_neg = y_train.clone()
     for idx, y_samp in enumerate(y_train):
@@ -674,6 +676,20 @@ if not hasattr(model, 'confidence_threshold_multiplier'):
     model.confidence_threshold_multiplier = args.confidence_threshold_multiplier
 else:
     model.confidence_threshold_multiplier = args.confidence_threshold_multiplier
+
+# Move model to CPU for inference (GPU was used only for training)
+print("Moving model to CPU for inference...")
+model = model.cpu()
+
+# Ensure all data tensors are on CPU for inference
+print("Moving data to CPU for inference...")
+inputs = inputs.cpu()
+targets = targets.cpu()
+x_te = x_te.cpu()
+y_te = y_te.cpu()
+X_val = X_val.cpu()
+y_val = y_val.cpu()
+print("✓ Model and data moved to CPU for inference")
 
 # evaluation - using filtered datasets consistently
 # Use the full filtered training data for training evaluation

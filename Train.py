@@ -90,12 +90,10 @@ class Net(torch.nn.Module):
 
             try:
                 softmax_layer_input
-                # Keep on same device as h
-                softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
+                softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
                 # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
             except NameError:
-                # Keep on same device as h
-                softmax_layer_input = h
+                softmax_layer_input = h.cpu()
                 # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
             if i == num_layers - 1:
                 _, softmax_layer_output = softmax_layer(softmax_layer_input)
@@ -123,12 +121,10 @@ class Net(torch.nn.Module):
 
                 try:
                     softmax_layer_input
-                    # Remove .cpu() call
-                    softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
+                    softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
                     # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
                 except NameError:
-                    # Remove .cpu() call
-                    softmax_layer_input = h
+                    softmax_layer_input = h.cpu()
                     # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
 
                 softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
@@ -170,10 +166,10 @@ class Net(torch.nn.Module):
             # print(softmax_layer(softmax_layer_input).detach().cpu().numpy())
             # y_predicted_on_layer[i, :] = softmax_layer(softmax_layer_input).argmax(1)  # to be checked
             softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
-            y_predicted_on_layer[i, :] = softmax_layer_output.argmax(1)  # to be checked
+            y_predicted_on_layer[i, :] = softmax_layer_output.argmax(1).detach().numpy()  # to be checked
             # softmax_output_on_layer[i, :, :] = softmax_layer(softmax_layer_input).detach().cpu().numpy()
             # softmax_output_on_layer[i, :, :] = softmax_layer.forward(softmax_layer_input).detach().cpu().numpy()
-            softmax_output_on_layer[i, :, :] = softmax_layer_output_l.detach().cpu().numpy()
+            softmax_output_on_layer[i, :, :] = softmax_layer_output_l.detach().numpy()
         # print(y_predicted_on_layer.shape)
         # exit()
 

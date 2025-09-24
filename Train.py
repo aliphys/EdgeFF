@@ -10,6 +10,34 @@ from sklearn.utils import shuffle
 from itertools import islice
 import os
 
+# Device management utilities
+def get_device():
+    """Get the best available device (CUDA if available, otherwise CPU)"""
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+        print(f"Using GPU: {torch.cuda.get_device_name()}")
+        print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+    else:
+        device = torch.device('cpu')
+        print("Using CPU (CUDA not available)")
+    return device
+
+def move_to_device(tensor, device):
+    """Move tensor to specified device if it's not already there"""
+    if tensor.device != device:
+        return tensor.to(device)
+    return tensor
+
+def prepare_data_for_training(x_pos, x_neg, x_neutral, targets, device):
+    """Move all training data to the specified device"""
+    print(f"Moving training data to {device}...")
+    x_pos = move_to_device(x_pos, device)
+    x_neg = move_to_device(x_neg, device)
+    x_neutral = move_to_device(x_neutral, device)
+    targets = move_to_device(targets, device)
+    print("✓ Data moved to device successfully")
+    return x_pos, x_neg, x_neutral, targets
+
 def overlay_y_on_x(x, y):
     """Replace the first 10 pixels of data [x] with one-hot-encoded label [y]
     """
@@ -29,19 +57,26 @@ def overlay_on_x_neutral(x):
 
 
 class Net(torch.nn.Module):
-    def __init__(self, dims, goodness_threshold=2.0, confidence_threshold_multiplier=1.0):
+    def __init__(self, dims, goodness_threshold=2.0, confidence_threshold_multiplier=1.0, device=None):
         super().__init__()
         self.layers = []
         self.softmax_layers = []
         self.confidence_threshold_multiplier = confidence_threshold_multiplier
+        self.device = device if device is not None else torch.device('cpu')
         
         for d in range(len(dims) - 1):
-            self.layers += [Layer(dims[d], dims[d + 1], threshold=goodness_threshold)]
+            layer = Layer(dims[d], dims[d + 1], threshold=goodness_threshold)
+            self.layers += [layer]
         for d in range(1, len(dims)):
             in_dim = dims[d]
             for i in range(1, d):
                 in_dim += dims[i]
-            self.softmax_layers += [SoftmaxLayer(in_features=in_dim, out_features=10)]  # .cuda()
+            softmax_layer = SoftmaxLayer(in_features=in_dim, out_features=10)
+            self.softmax_layers += [softmax_layer]
+        
+        # Convert to ModuleLists for proper device handling
+        self.layers = torch.nn.ModuleList(self.layers)
+        self.softmax_layers = torch.nn.ModuleList(self.softmax_layers)
 
 
 
@@ -55,10 +90,12 @@ class Net(torch.nn.Module):
 
             try:
                 softmax_layer_input
-                softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
+                # Keep on same device as h
+                softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
                 # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
             except NameError:
-                softmax_layer_input = h.cpu()
+                # Keep on same device as h
+                softmax_layer_input = h
                 # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
             if i == num_layers - 1:
                 _, softmax_layer_output = softmax_layer(softmax_layer_input)
@@ -86,10 +123,12 @@ class Net(torch.nn.Module):
 
                 try:
                     softmax_layer_input
-                    softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
+                    # Remove .cpu() call
+                    softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
                     # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
                 except NameError:
-                    softmax_layer_input = h.cpu()
+                    # Remove .cpu() call
+                    softmax_layer_input = h
                     # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
 
                 softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
@@ -152,7 +191,8 @@ class Net(torch.nn.Module):
             h_neutral_label = x_neutral_label
             # for softmax layer of layer d
             num_input_features = sum(dims[1:(d + 2)])
-            softmax_layer_input = torch.empty((batch_size, num_input_features))
+            # Create tensor on same device as input data
+            softmax_layer_input = torch.empty((batch_size, num_input_features), device=x_neutral_label.device)
             for i, layer in islice(enumerate(self.layers), 0, (d + 1)):  # from first layer to layer d (d included)
                 # print("i was here ", i, d)
                 h_neutral_label = layer.forward(h_neutral_label)
@@ -224,7 +264,15 @@ class SoftmaxLayer(nn.Module):
 def build_model(x_pos, x_neg, x_neutral, targets, layers, goodness_threshold=2.0, confidence_threshold_multiplier=1.0):
     # torch.manual_seed(1234)
     dims = layers  
-    model = Net(dims, goodness_threshold=goodness_threshold, confidence_threshold_multiplier=confidence_threshold_multiplier)
+    
+    # Set up device and move data to GPU
+    device = get_device()
+    x_pos, x_neg, x_neutral, targets = prepare_data_for_training(x_pos, x_neg, x_neutral, targets, device)
+    
+    # Create model and move to GPU
+    model = Net(dims, goodness_threshold=goodness_threshold, confidence_threshold_multiplier=confidence_threshold_multiplier, device=device)
+    model = model.to(device)
+    print(f"✓ Model moved to {device}")
 
     num_epochs = 100
     for epoch in tqdm(range(num_epochs)):

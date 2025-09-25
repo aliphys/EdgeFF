@@ -14,7 +14,7 @@ from jtop import jtop
 _original_jtop_init = jtop.__init__
 
 def _patched_jtop_init(self, *args, **kwargs):
-    kwargs['interval'] = 0.2
+    kwargs['interval'] = 0.2  # Set to 200ms for a balance between responsiveness and overhead
     _original_jtop_init(self, *args, **kwargs)
 
 jtop.__init__ = _patched_jtop_init
@@ -54,6 +54,7 @@ class PowerMonitor:
         self.current_round = 0
         self.current_epoch = 0
         self._lock = threading.Lock()
+        self._thread_ready = threading.Event()
         
     def start_monitoring(self, round_num: int, epoch: int = 0):
         """
@@ -67,9 +68,13 @@ class PowerMonitor:
             self.current_epoch = epoch
             self.monitoring = True
             
+        self._thread_ready.clear()
         self.monitor_thread = threading.Thread(target=self._monitor_power)
         self.monitor_thread.daemon = True
         self.monitor_thread.start()
+        
+        # Wait for the thread to be ready (with timeout)
+        self._thread_ready.wait(timeout=2.0)
         
     def stop_monitoring(self):
         """Stop power monitoring and wait for thread to complete"""
@@ -78,6 +83,9 @@ class PowerMonitor:
             
         if self.monitor_thread and self.monitor_thread.is_alive():
             self.monitor_thread.join(timeout=5.0)  # 5 second timeout
+            
+        # Reset thread reference to None after stopping
+        self.monitor_thread = None
             
     def update_epoch(self, epoch: int):
         """
@@ -92,6 +100,12 @@ class PowerMonitor:
         """Internal method to collect power measurements from jtop"""
         try:
             with jtop() as jetson:
+                # Give jtop a moment to initialize
+                time.sleep(0.1)
+                
+                # Signal that the thread is ready
+                self._thread_ready.set()
+                
                 while True:
                     with self._lock:
                         if not self.monitoring:

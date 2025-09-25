@@ -1409,7 +1409,7 @@ def measure_batch_energy_by_exit_layer(model, test_data, test_labels, exit_patte
         batch_labels = torch.stack([test_labels[idx] for idx in sample_indices])
         
         # Use smaller sub-batches to manage memory and power monitoring
-        batch_size = min(100, len(sample_indices))  # Process in chunks of 100
+        batch_size = min(500, len(sample_indices))  # Process in chunks of 500
         energy_measurements = []
         
         monitor = RealPowerEnergyMonitor()

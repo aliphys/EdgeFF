@@ -6,6 +6,7 @@ Provides real-time power consumption tracking during federated training.
 import json
 import time
 import threading
+import subprocess
 from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
 from jtop import jtop
@@ -21,6 +22,27 @@ jtop.__init__ = _patched_jtop_init
 
 # In order to reduce the sampling time to a lower interval than 250ms, we modify the /etc/systemd/jtop.service file
 # Change the line: ExecStart=/usr/local/bin/jtop -i 100
+
+def check_jtop_service_status():
+    """Check if jtop service is active and running"""
+    try:
+        result = subprocess.run(['systemctl', 'is-active', 'jtop.service'], 
+                              capture_output=True, text=True, timeout=5)
+        return result.stdout.strip() == 'active'
+    except:
+        return False
+
+def wait_for_jtop_service(max_wait_time=30):
+    """Wait for jtop service to become active, with timeout"""
+    print("Waiting for jtop service to become active...")
+    start_time = time.time()
+    while time.time() - start_time < max_wait_time:
+        if check_jtop_service_status():
+            print("jtop service is now active")
+            return True
+        time.sleep(1.0)
+    print(f"jtop service did not become active within {max_wait_time} seconds")
+    return False
 
 @dataclass
 class PowerMeasurement:
@@ -98,108 +120,134 @@ class PowerMonitor:
             
     def _monitor_power(self):
         """Internal method to collect power measurements from jtop"""
-        try:
-            with jtop() as jetson:
-                # Give jtop a moment to initialize
-                time.sleep(0.1)
-                
-                # Signal that the thread is ready
-                self._thread_ready.set()
-                
-                while True:
-                    with self._lock:
-                        if not self.monitoring:
-                            break
-                        current_round = self.current_round
-                        current_epoch = self.current_epoch
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                with jtop() as jetson:
+                    # Give jtop a moment to initialize
+                    time.sleep(0.1)
                     
-                    if jetson.ok():
-                        # Extract power measurements from jtop using correct API
-                        power_data = jetson.power
-                        
-                        # Get total power (in mW, convert to W)
-                        total_power = None
-                        total_power_info = power_data.get('tot', {})
-                        if total_power_info and 'power' in total_power_info:
-                            total_power = total_power_info['power'] / 1000.0  # Convert mW to W
-                        
-                        # Get individual power rail measurements (convert mW to W)
-                        power_cpu_gpu_cv = None  # VDD_CPU_GPU_CV: CPU, GPU and CV cores
-                        power_soc = None         # VDD_SOC: SOC core (memory subsystem and engines)
-                        
-                        rails = power_data.get('rail', {})
-                        for rail_name, rail_data in rails.items():
-                            if isinstance(rail_data, dict) and rail_data.get('online', False):
-                                power_val = rail_data.get('power', 0)
-                                if power_val is not None:
-                                    power_w = power_val / 1000.0  # Convert mW to W
-                                    
-                                    # Store specific power rail measurements based on Jetson Orin Nano channels
-                                    # Channel 1: VDD_IN - Total Module Power
-                                    # Channel 2: VDD_CPU_GPU_CV - CPU, GPU and CV cores (DLA, PVA) 
-                                    # Channel 3: VDD_SOC - SOC core (memory, nvdec, nvenc, vi, vic, isp, etc.)
-                                    
-                                    if 'VDD_IN' in rail_name:
-                                        # This is total module power - we'll use it for total_power if available
-                                        pass  # Handle separately below
-                                    elif 'VDD_CPU_GPU_CV' in rail_name:
-                                        power_cpu_gpu_cv = power_w    # CPU, GPU and CV cores
-                                    elif 'VDD_SOC' in rail_name:
-                                        power_soc = power_w           # SOC core (memory subsystem and engines)
-
-                                    
-                        
-                        # Extract GPU utilization
-                        gpu_util = None
-                        gpu_info = jetson.gpu.get('gpu', {})
-                        status = gpu_info.get('status', {})
-                        if 'load' in status:
-                            gpu_util = status['load']
-                        
-                        # Extract CPU utilization (overall usage)
-                        cpu_util = None
-                        cpu_info = jetson.cpu
-                        total_cpu = cpu_info.get('total', {})
-                        if 'idle' in total_cpu:
-                            cpu_util = 100.0 - total_cpu['idle']  # Convert idle to usage
-                        
-                        # Extract memory usage
-                        memory_usage = None
-                        memory_info = jetson.memory
-                        ram = memory_info.get('RAM', {})
-                        if 'used' in ram and 'tot' in ram and ram['tot'] > 0:
-                            memory_usage = (ram['used'] / ram['tot']) * 100.0
-                        
-                        # Extract temperature (use CPU temperature as primary)
-                        temperature = None
-                        temp_info = jetson.temperature
-                        # Try different temperature sensor names
-                        for sensor_name, sensor_data in temp_info.items():
-                            if sensor_data.get('online', False) and sensor_data.get('temp', -256) > -200:
-                                temperature = sensor_data['temp']
-                                break  # Use the first available temperature
-                        
-                        measurement = PowerMeasurement(
-                            timestamp=time.time(),
-                            client_id=self.client_id,
-                            round_num=current_round,
-                            epoch=current_epoch,
-                            power_cpu_gpu_cv=power_cpu_gpu_cv,
-                            power_soc=power_soc,
-                            total_power=total_power,
-                            gpu_utilization=gpu_util,
-                            cpu_utilization=cpu_util,
-                            memory_usage=memory_usage,
-                            temperature=temperature
-                        )
-                        
+                    # Signal that the thread is ready (only on first successful connection)
+                    if retry_count == 0:
+                        self._thread_ready.set()
+                    
+                    while True:
                         with self._lock:
-                            self.measurements.append(measurement)
-                    
-                    time.sleep(0.25)  # Sample every 250ms for high-resolution power profiling
-                    
-        except Exception as e:
-            print(f"Error in power monitoring for client {self.client_id}: {e}")
+                            if not self.monitoring:
+                                return  # Exit cleanly
+                            current_round = self.current_round
+                            current_epoch = self.current_epoch
+                        
+                        if jetson.ok():
+                            # Extract power measurements from jtop using correct API
+                            power_data = jetson.power
+                            
+                            # Get total power (in mW, convert to W)
+                            total_power = None
+                            total_power_info = power_data.get('tot', {})
+                            if total_power_info and 'power' in total_power_info:
+                                total_power = total_power_info['power'] / 1000.0  # Convert mW to W
+                            
+                            # Get individual power rail measurements (convert mW to W)
+                            power_cpu_gpu_cv = None  # VDD_CPU_GPU_CV: CPU, GPU and CV cores
+                            power_soc = None         # VDD_SOC: SOC core (memory subsystem and engines)
+                            
+                            rails = power_data.get('rail', {})
+                            for rail_name, rail_data in rails.items():
+                                if isinstance(rail_data, dict) and rail_data.get('online', False):
+                                    power_val = rail_data.get('power', 0)
+                                    if power_val is not None:
+                                        power_w = power_val / 1000.0  # Convert mW to W
+                                        
+                                        # Store specific power rail measurements based on Jetson Orin Nano channels
+                                        # Channel 1: VDD_IN - Total Module Power
+                                        # Channel 2: VDD_CPU_GPU_CV - CPU, GPU and CV cores (DLA, PVA) 
+                                        # Channel 3: VDD_SOC - SOC core (memory, nvdec, nvenc, vi, vic, isp, etc.)
+                                        
+                                        if 'VDD_IN' in rail_name:
+                                            # This is total module power - we'll use it for total_power if available
+                                            pass  # Handle separately below
+                                        elif 'VDD_CPU_GPU_CV' in rail_name:
+                                            power_cpu_gpu_cv = power_w    # CPU, GPU and CV cores
+                                        elif 'VDD_SOC' in rail_name:
+                                            power_soc = power_w           # SOC core (memory subsystem and engines)
+                            
+                            # Extract GPU utilization
+                            gpu_util = None
+                            gpu_info = jetson.gpu.get('gpu', {})
+                            status = gpu_info.get('status', {})
+                            if 'load' in status:
+                                gpu_util = status['load']
+                            
+                            # Extract CPU utilization (overall usage)
+                            cpu_util = None
+                            cpu_info = jetson.cpu
+                            total_cpu = cpu_info.get('total', {})
+                            if 'idle' in total_cpu:
+                                cpu_util = 100.0 - total_cpu['idle']  # Convert idle to usage
+                            
+                            # Extract memory usage
+                            memory_usage = None
+                            memory_info = jetson.memory
+                            ram = memory_info.get('RAM', {})
+                            if 'used' in ram and 'tot' in ram and ram['tot'] > 0:
+                                memory_usage = (ram['used'] / ram['tot']) * 100.0
+                            
+                            # Extract temperature (use CPU temperature as primary)
+                            temperature = None
+                            temp_info = jetson.temperature
+                            # Try different temperature sensor names
+                            for sensor_name, sensor_data in temp_info.items():
+                                if sensor_data.get('online', False) and sensor_data.get('temp', -256) > -200:
+                                    temperature = sensor_data['temp']
+                                    break  # Use the first available temperature
+                            
+                            measurement = PowerMeasurement(
+                                timestamp=time.time(),
+                                client_id=self.client_id,
+                                round_num=current_round,
+                                epoch=current_epoch,
+                                power_cpu_gpu_cv=power_cpu_gpu_cv,
+                                power_soc=power_soc,
+                                total_power=total_power,
+                                gpu_utilization=gpu_util,
+                                cpu_utilization=cpu_util,
+                                memory_usage=memory_usage,
+                                temperature=temperature
+                            )
+                            
+                            with self._lock:
+                                self.measurements.append(measurement)
+                        
+                        time.sleep(0.5)  # Increased to 500ms to reduce stress on jtop service
+                        
+                # If we get here, jtop connection closed normally
+                return
+                
+            except Exception as e:
+                retry_count += 1
+                error_msg = str(e)
+                print(f"Error in power monitoring for client {self.client_id} (attempt {retry_count}/{max_retries}): {error_msg}")
+                
+                # Check if it's a jtop service issue
+                if "jtop.service is not active" in error_msg or "service" in error_msg.lower():
+                    print(f"jtop service issue detected. Waiting for service recovery...")
+                    # Wait for jtop service to recover
+                    if not wait_for_jtop_service(max_wait_time=15):
+                        print("jtop service recovery timeout - continuing with next retry")
+                elif not check_jtop_service_status():
+                    print("jtop service is not active - waiting for recovery...")
+                    wait_for_jtop_service(max_wait_time=10)
+                        
+                if retry_count >= max_retries:
+                    print(f"Power monitoring failed after {max_retries} attempts for client {self.client_id}")
+                    # Signal thread ready even on failure to prevent deadlock
+                    self._thread_ready.set()
+                    return
+                else:
+                    time.sleep(1.0)  # Brief wait before retry
             
     def get_measurements(self) -> List[Dict]:
         """

@@ -140,6 +140,7 @@ class PowerMonitor:
                             current_round = self.current_round
                             current_epoch = self.current_epoch
                         
+                        # Continuously collect data when jetson.ok() is true for highest resolution
                         if jetson.ok():
                             # Extract power measurements from jtop using correct API
                             power_data = jetson.power
@@ -221,7 +222,9 @@ class PowerMonitor:
                             with self._lock:
                                 self.measurements.append(measurement)
                         
-                        time.sleep(0.5)  # Increased to 500ms to reduce stress on jtop service
+                        # High-resolution sampling: 100ms sleep for 10Hz data collection
+                        # This maximizes time resolution while maintaining jtop service stability
+                        time.sleep(0.1)
                         
                 # If we get here, jtop connection closed normally
                 return

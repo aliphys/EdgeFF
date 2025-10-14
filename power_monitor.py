@@ -15,12 +15,12 @@ from jtop import jtop
 _original_jtop_init = jtop.__init__
 
 def _patched_jtop_init(self, *args, **kwargs):
-    kwargs['interval'] = 0.2  # Set to 200ms for a balance between responsiveness and overhead
+    kwargs['interval'] = 2  # Set to 200ms for a balance between responsiveness and overhead
     _original_jtop_init(self, *args, **kwargs)
 
 jtop.__init__ = _patched_jtop_init
 
-# In order to reduce the sampling time to a lower interval than 250ms, we modify the /etc/systemd/jtop.service file
+# In order to reduce the sampling time to a lower interval than 250ms, we modify the /etc/systemd/system/jtop.service file
 # Change the line: ExecStart=/usr/local/bin/jtop -i 100
 
 def check_jtop_service_status():
@@ -85,6 +85,10 @@ class PowerMonitor:
             round_num (int): Current federated learning round
             epoch (int): Current local training epoch
         """
+        # Ensure any previous thread is properly stopped before starting a new one
+        if self.monitor_thread and self.monitor_thread.is_alive():
+            self.stop_monitoring()
+        
         with self._lock:
             self.current_round = round_num
             self.current_epoch = epoch
@@ -96,7 +100,12 @@ class PowerMonitor:
         self.monitor_thread.start()
         
         # Wait for the thread to be ready (with timeout)
-        self._thread_ready.wait(timeout=2.0)
+        thread_ready = self._thread_ready.wait(timeout=2.0)
+        if not thread_ready:
+            print(f"Warning: Power monitoring thread for client {self.client_id} didn't start within timeout")
+            # Set monitoring to False to prevent hanging in stop_monitoring
+            with self._lock:
+                self.monitoring = False
         
     def stop_monitoring(self):
         """Stop power monitoring and wait for thread to complete"""
@@ -105,6 +114,8 @@ class PowerMonitor:
             
         if self.monitor_thread and self.monitor_thread.is_alive():
             self.monitor_thread.join(timeout=5.0)  # 5 second timeout
+            if self.monitor_thread.is_alive():
+                print(f"Warning: Power monitoring thread for client {self.client_id} didn't stop within timeout")
             
         # Reset thread reference to None after stopping
         self.monitor_thread = None
@@ -127,7 +138,7 @@ class PowerMonitor:
             try:
                 with jtop() as jetson:
                     # Give jtop a moment to initialize
-                    time.sleep(0.1)
+                    time.sleep(0.4)
                     
                     # Signal that the thread is ready (only on first successful connection)
                     if retry_count == 0:
@@ -224,7 +235,7 @@ class PowerMonitor:
                         
                         # High-resolution sampling: 100ms sleep for 10Hz data collection
                         # This maximizes time resolution while maintaining jtop service stability
-                        time.sleep(0.1)
+                        time.sleep(0.4)
                         
                 # If we get here, jtop connection closed normally
                 return

@@ -24,11 +24,14 @@ matplotlib.use('Agg')  # Use non-interactive backend to prevent automatic showin
 
 
 print('MNIST_One_Pass')
-layers = [784,2000,2000,2000] # go wider, not deeper!  https://cdn.aaai.org/ojs/20858/20858-13-24871-1-2-20220628.pdf
+# Default network config; will be overridden by CLI args after parsing
+# go wider, not deeper!  https://cdn.aaai.org/ojs/20858/20858-13-24871-1-2-20220628.pdf
+DEFAULT_INPUT_SIZE = 784
+DEFAULT_WIDTH = 100
+DEFAULT_DEPTH = 3
+layers = [DEFAULT_INPUT_SIZE] + [DEFAULT_WIDTH] * DEFAULT_DEPTH
 # large parallel with "individual layer normalisation" presented in paper with the concept of goodness.
-length_network = len(layers)-1
-print('layers: ' + str(length_network))
-print(layers)
+# Defer printing final layers until after CLI args are parsed
 
 # Command line argument parser
 def parse_arguments():
@@ -37,8 +40,8 @@ def parse_arguments():
                         help='Classes to include in the dataset (default: all classes 0-9)')
     parser.add_argument('--filter_by_layer', nargs='+', type=int, default=None,
                         help='Filter by layer predictions (default: all classes 0-9)')
-    parser.add_argument('--target_layer', type=int, default=2,
-                        help='Target layer for filtering (default: 2)')
+    parser.add_argument('--target_layer', type=int, default=None,
+                        help='Target layer for filtering (default: last hidden layer)')
     parser.add_argument('--correct_only', action='store_true', default=False,
                         help='Only keep correctly predicted samples (default: False)')
     parser.add_argument('--run_specialization', action='store_true', default=False,
@@ -53,6 +56,10 @@ def parse_arguments():
                         help='Run detailed validation of two-phase energy analysis')
     parser.add_argument('--train', type=str, choices=['True', 'False', 'true', 'false'], default='False',
                         help='Train a new model (default: False - load existing model)')
+    parser.add_argument('--depth', type=int, default=DEFAULT_DEPTH,
+                        help=f'Number of hidden layers (default: {DEFAULT_DEPTH})')
+    parser.add_argument('--width', type=int, default=DEFAULT_WIDTH,
+                        help=f'Width (neurons) of each hidden layer (default: {DEFAULT_WIDTH})')
     return parser.parse_args()
 
 # load data
@@ -283,7 +290,7 @@ def analyze_layer_performance_degradation(model, x_te, y_te, test_loader_all_cla
     print("\n1. INDIVIDUAL LAYER PERFORMANCE:")
     print("-" * 40)
     layer_accuracies = []
-    for layer_idx in range(3):  # 3 hidden layers
+    for layer_idx in range(len(model.layers)):
         accuracy = eval_with_fixed_layer(model, x_te, y_te, layer_idx)
         layer_accuracies.append(accuracy)
         print(f"   Layer {layer_idx} only: {accuracy:.4f} ({accuracy*100:.1f}%)")
@@ -359,7 +366,7 @@ def analyze_layer_performance_degradation(model, x_te, y_te, test_loader_all_cla
     # Test how well each layer separates different classes
     unique_classes = torch.unique(sample_labels)
     
-    for layer_idx in range(3):
+    for layer_idx in range(len(model.layers)):
         print(f"\n   Layer {layer_idx} class separation:")
         
         # Get activations for this layer
@@ -440,9 +447,11 @@ def analyze_layer_performance_degradation(model, x_te, y_te, test_loader_all_cla
     return layer_stats, all_goodness_stats
 
 
-def run_layer_specialization_analysis(model, test_loader_all_classes, num_layers=3, num_classes=10):
+def run_layer_specialization_analysis(model, test_loader_all_classes, num_layers=None, num_classes=10):
     """Run layer specialization analysis and create visualization"""
     print("\n--- Running Layer Specialization Analysis ---")
+    if num_layers is None:
+        num_layers = len(model.layers)
     
     # Create specialization matrix
     specialization_matrix = np.zeros((num_layers, num_classes))
@@ -539,7 +548,7 @@ def demonstrate_threshold_effects(args, model_path):
     multipliers = [0.1, 0.5, 1.0, 1.5, 2.0, 3.0]
     
     print("\nConfidence Threshold Effects:")
-    print("Multiplier | Accuracy | Early Exit Rate | Avg Layers | Layer 1 % | Layer 2 % | Layer 3 %")
+    print("Multiplier | Accuracy | Early Exit Rate | Avg Layers | Layer % per exit")
     print("-" * 85)
     
     # Pre-load test data once
@@ -552,7 +561,7 @@ def demonstrate_threshold_effects(args, model_path):
         x_te, y_te = next(iter(test_loader))
         test_samples = x_te[:500]  # Use subset for speed
         test_targets = y_te[:500]
-    except:
+    except Exception:
         print("Error loading test data - using synthetic data for demonstration")
         test_samples = torch.randn(100, 784)
         test_targets = torch.randint(0, 10, (100,))
@@ -578,7 +587,8 @@ def demonstrate_threshold_effects(args, model_path):
             # Run light inference analysis
             total_samples = len(test_samples)
             correct_predictions = 0
-            layer_usage = {1: 0, 2: 0, 3: 0}
+            num_layers = len(model.layers)
+            layer_usage = {i: 0 for i in range(1, num_layers + 1)}
             total_layers_used = 0
             
             with torch.no_grad():
@@ -602,13 +612,13 @@ def demonstrate_threshold_effects(args, model_path):
             # Calculate statistics
             accuracy = correct_predictions / total_samples
             avg_layers = total_layers_used / total_samples
-            early_exit_rate = (layer_usage[1] + layer_usage[2]) / total_samples
-            
-            layer1_pct = layer_usage[1] / total_samples * 100
-            layer2_pct = layer_usage[2] / total_samples * 100
-            layer3_pct = layer_usage[3] / total_samples * 100
-            
-            print(f"{multiplier:8.1f} | {accuracy:8.3f} | {early_exit_rate:13.1%} | {avg_layers:10.2f} | {layer1_pct:8.1f}% | {layer2_pct:8.1f}% | {layer3_pct:8.1f}%")
+            early_exit_rate = sum(layer_usage[i] for i in range(1, num_layers)) / total_samples if num_layers > 1 else 0.0
+
+            # Build dynamic layer percentage string
+            layer_pcts = [f"L{i}:{(layer_usage[i]/total_samples*100):.1f}%" for i in range(1, num_layers + 1)]
+            layer_pcts_str = " | ".join(layer_pcts)
+
+            print(f"{multiplier:8.1f} | {accuracy:8.3f} | {early_exit_rate:13.1%} | {avg_layers:10.2f} | {layer_pcts_str}")
             
         except Exception as e:
             print(f"{multiplier:8.1f} | {'ERROR':>8} | {'N/A':>13} | {'N/A':>10} | {'N/A':>8} | {'N/A':>8} | {'N/A':>8}")
@@ -625,6 +635,18 @@ model_path = os.path.split(os.path.realpath(__file__))[0] + '/model/temp_'
 
 # Parse command line arguments
 args = parse_arguments()
+
+# Build layers from CLI width/depth
+hidden_depth = max(1, int(args.depth))
+hidden_width = max(1, int(args.width))
+layers = [DEFAULT_INPUT_SIZE] + [hidden_width] * hidden_depth
+length_network = len(layers) - 1
+print('layers (hidden depth): ' + str(length_network))
+print(layers)
+
+# If target_layer not provided, default to last hidden layer index
+if args.target_layer is None:
+    args.target_layer = length_network - 1  # 0-indexed among hidden layers
 
 # Use arguments to configure MNIST_loaders
 train_loader, test_loader = MNIST_loaders(
@@ -722,7 +744,7 @@ Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te,
 
 # Fixed layer evaluation - test each layer individually
 print(f"\n--- Fixed Layer Evaluation ---")
-for target_layer in [0, 1, 2]:
+for target_layer in range(len(model.layers)):
     accuracy = eval_with_fixed_layer(model, x_te, y_te, target_layer)
     print(f"Layer {target_layer} only - Accuracy: {accuracy:.4f}")
 
@@ -739,7 +761,7 @@ if args.run_specialization:
     
     # Run the specialization analysis
     specialization_matrix = run_layer_specialization_analysis(
-        model, test_loader_all_classes, num_layers=3, num_classes=10
+        model, test_loader_all_classes, num_layers=None, num_classes=10
     )
     
     # Additional analysis: Show which samples were filtered out by our current settings
@@ -775,7 +797,8 @@ class RealPowerEnergyMonitor:
         self.layer_measurements = defaultdict(list)
         self.layer_times = defaultdict(list)
         self.confidence_check_times = []
-        self.early_exit_stats = {'layer_1': 0, 'layer_2': 0, 'layer_3': 0}
+        # Will be initialized dynamically when used based on model depth
+        self.early_exit_stats = {}
         self.current_round = 0
         self.current_sample_idx = 0
         
@@ -886,6 +909,10 @@ def energy_aware_inference(model, x, confidence_mean_vec, confidence_std_vec, mo
     # Track accumulated input sizes for softmax layers
     accumulated_features = 0
     
+    # Initialize monitor's early_exit_stats dict if empty
+    if not getattr(monitor, 'early_exit_stats', {}):
+        monitor.early_exit_stats = {f'layer_{i+1}': 0 for i in range(len(model.layers))}
+
     for layer_idx, (layer, softmax_layer) in enumerate(zip(model.layers, model.softmax_layers)):
         # Start power monitoring for this layer
         monitor.start_layer_monitoring(layer_idx, sample_idx)
@@ -942,7 +969,7 @@ def energy_aware_inference(model, x, confidence_mean_vec, confidence_std_vec, mo
             return softmax_output.argmax(1), layer_energies, monitor
     
     # If no early exit, use final layer
-    monitor.early_exit_stats['layer_3'] += batch_size
+    monitor.early_exit_stats[f'layer_{len(model.layers)}'] += batch_size
     return softmax_output.argmax(1), layer_energies, monitor
 
 
@@ -983,8 +1010,9 @@ def compare_energy_vs_accuracy(model, test_data, test_labels, confidence_mean_ve
         print(f"Layer {layer_idx}: logit({mean_logit:.3f}, {std_logit:.3f}) → prob({mean_prob:.6f}, {std_prob:.6f})")
     
     print(f"\nTesting with Corrected Probability-Space Thresholds:")
-    print("Multiplier | Layer 0 Thresh | Layer 1 Thresh | Layer 2 Thresh | Avg Energy | Accuracy")
-    print("-" * 85)
+    layer_cols = " | ".join([f"Layer {i} Thresh" for i in range(len(prob_thresholds_base))])
+    print(f"Multiplier | {layer_cols} | Avg Energy | Accuracy")
+    print("-" * (30 + 18 * max(1, len(prob_thresholds_base))))
     
     for multiplier in multipliers:
         print(f"\n--- Processing multiplier {multiplier:.1f} ---")
@@ -1080,9 +1108,9 @@ def compare_energy_vs_accuracy(model, test_data, test_labels, confidence_mean_ve
         
         # Restore original method
         model.check_confidence = original_check
-        
-        print(f"{multiplier:10.1f} | {corrected_thresholds[0]:14.6f} | {corrected_thresholds[1]:14.6f} | "
-              f"{corrected_thresholds[2]:14.6f} | {avg_energy_mj:10.3f} | {accuracy:8.3f}")
+
+        thresh_str = " | ".join([f"{t:14.6f}" for t in corrected_thresholds])
+        print(f"{multiplier:10.1f} | {thresh_str} | {avg_energy_mj:10.3f} | {accuracy:8.3f}")
     
     # Restore original threshold
     model.confidence_threshold_multiplier = original_multiplier
@@ -1105,8 +1133,9 @@ def debug_confidence_mechanism(model, test_data, test_labels, confidence_mean_ve
     multipliers = [0.1, 0.5, 1.5, 3.0]
     
     print(f"\nThreshold Analysis for Different Multipliers:")
-    print("Multiplier | Layer 0 Threshold | Layer 1 Threshold | Layer 2 Threshold")
-    print("-" * 70)
+    cols = " | ".join([f"Layer {i} Threshold" for i in range(len(confidence_mean_vec))])
+    print(f"Multiplier | {cols}")
+    print("-" * (15 + 22 * max(1, len(confidence_mean_vec))))
     
     for mult in multipliers:
         thresholds = []
@@ -1116,7 +1145,8 @@ def debug_confidence_mechanism(model, test_data, test_labels, confidence_mean_ve
             threshold = mean_val - (mult * std_val)
             thresholds.append(threshold)
         
-        print(f"{mult:10.1f} | {thresholds[0]:17.6f} | {thresholds[1]:17.6f} | {thresholds[2]:17.6f}")
+    thr_str = " | ".join([f"{t:17.6f}" for t in thresholds])
+    print(f"{mult:10.1f} | {thr_str}")
     
     # Test actual confidence values on a few samples
     print(f"\nActual Softmax Outputs Analysis (first 3 samples):")
@@ -1287,7 +1317,9 @@ def detect_sample_exit_patterns(model, test_data, test_labels, confidence_mean_v
     """
     print("\n=== Phase 1: Detecting Sample Exit Patterns (Fast) ===")
     
-    exit_patterns = {1: [], 2: [], 3: []}  # layer_idx + 1 -> [sample_indices]
+    # Initialize exit_patterns dynamically based on number of layers
+    num_layers = len(model.layers)  # Number of actual layers in the model
+    exit_patterns = {i: [] for i in range(1, num_layers + 1)}  # layer_idx + 1 -> [sample_indices]
     sample_predictions = []
     total_samples = len(test_data)
     
@@ -1306,7 +1338,7 @@ def detect_sample_exit_patterns(model, test_data, test_labels, confidence_mean_v
             h = overlay_on_x_neutral(sample)
             softmax_layer_input = None
             
-            exit_layer = 3  # Default to final layer
+            exit_layer = len(model.layers)  # Default to final layer
             final_prediction = None
             
             for layer_idx, (layer, softmax_layer) in enumerate(zip(model.layers, model.softmax_layers)):
@@ -1349,7 +1381,7 @@ def detect_sample_exit_patterns(model, test_data, test_labels, confidence_mean_v
     
     # Calculate accuracy per exit layer
     print(f"\n=== Accuracy by Exit Layer ===")
-    for layer in [1, 2, 3]:
+    for layer in range(1, len(model.layers) + 1):
         layer_samples = [p for p in sample_predictions if p['exit_layer'] == layer]
         if layer_samples:
             correct = sum(1 for p in layer_samples if p['prediction'] == p['true_label'])
@@ -1409,9 +1441,11 @@ def measure_batch_energy_by_exit_layer(model, test_data, test_labels, exit_patte
         batch_labels = torch.stack([test_labels[idx] for idx in sample_indices])
         
         # Use smaller sub-batches to manage memory and power monitoring
-        batch_size = min(1000, len(sample_indices))  # Process in chunks of 500
+        # Reduce batch size for large models to prevent hanging during power monitoring
+        batch_size = min(100, len(sample_indices))  # Process in chunks of 100 (reduced from 1000)
         energy_measurements = []
         
+        # Create one monitor instance for this exit layer
         monitor = RealPowerEnergyMonitor()
         
         for batch_start in range(0, len(batch_samples), batch_size):
@@ -1421,23 +1455,34 @@ def measure_batch_energy_by_exit_layer(model, test_data, test_labels, exit_patte
             print(f"    Processing sub-batch {batch_start//batch_size + 1}: samples {batch_start}-{batch_end-1}")
             
             # Start power monitoring for this sub-batch
+            print(f"      Starting power monitoring for layer {exit_layer}...")
             monitor.start_layer_monitoring(exit_layer - 1, batch_start)  # Convert to 0-indexed
+            print(f"      Power monitoring started successfully")
             
             batch_start_time = time.perf_counter()
             
             # Process the entire sub-batch with early exit at target layer
             with torch.no_grad():
                 predictions = []
-                for sample in sub_batch:
+                for i, sample in enumerate(sub_batch):
                     prediction = _process_sample_to_target_layer(
                         model, sample.unsqueeze(0), exit_layer, confidence_mean_vec, confidence_std_vec
                     )
                     predictions.append(prediction)
+                    
+                    # Clear GPU cache periodically to prevent memory buildup
+                    if i % 25 == 0 and torch.cuda.is_available():
+                        torch.cuda.empty_cache()
             
             batch_duration = time.perf_counter() - batch_start_time
             
             # Stop power monitoring
+            print(f"      Stopping power monitoring for layer {exit_layer}...")
             monitor.stop_layer_monitoring(exit_layer - 1)
+            print(f"      Power monitoring stopped successfully")
+            
+            # Small delay to ensure proper cleanup before next iteration
+            time.sleep(0.1)
             
             # Get energy summary for this sub-batch
             energy_summary = monitor.get_layer_energy_summary(exit_layer - 1)
@@ -1451,8 +1496,15 @@ def measure_batch_energy_by_exit_layer(model, test_data, test_labels, exit_patte
                 'soc_power_watts': energy_summary.get('avg_soc_power_watts', 0.0)
             })
             
-            # Clear measurements for next batch
+            # Clear measurements after each sub-batch to avoid accumulation
             monitor.clear_measurements()
+            
+            # Force garbage collection and GPU memory cleanup between sub-batches
+            import gc
+            del predictions, sub_batch
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
         
         # Calculate aggregate statistics for this exit layer
         total_samples = sum(m['batch_size'] for m in energy_measurements)
@@ -1957,8 +2009,9 @@ def enhanced_energy_analysis_with_proper_thresholds(model, test_data, test_label
     results = []
     
     print("\nTesting Corrected Confidence Thresholds:")
-    print("Multiplier | Layer 0 Threshold | Layer 1 Threshold | Layer 2 Threshold | Avg Energy | Accuracy")
-    print("-" * 95)
+    header_cols = " | ".join([f"Layer {i} Threshold" for i in range(len(prob_thresholds))])
+    print(f"Multiplier | {header_cols} | Avg Energy | Accuracy")
+    print("-" * (35 + 22 * max(1, len(prob_thresholds))))
     
     original_multiplier = getattr(model, 'confidence_threshold_multiplier', 1.0)
     
@@ -1997,17 +2050,17 @@ def enhanced_energy_analysis_with_proper_thresholds(model, test_data, test_label
                 if prediction.item() == target.item():
                     correct += 1
         
-        accuracy = correct / total
-        
-        results.append({
+    accuracy = correct / total
+
+    results.append({
             'multiplier': multiplier,
             'avg_energy': energy_result['avg_energy'],
             'accuracy': accuracy,
             'thresholds': corrected_thresholds.copy()
         })
         
-        print(f"{multiplier:10.1f} | {corrected_thresholds[0]:17.6f} | {corrected_thresholds[1]:17.6f} | "
-              f"{corrected_thresholds[2]:17.6f} | {energy_result['avg_energy']:10,.0f} | {accuracy:8.3f}")
+    thr_str = " | ".join([f"{t:17.6f}" for t in corrected_thresholds])
+    print(f"{multiplier:10.1f} | {thr_str} | {energy_result['avg_energy']:10,.0f} | {accuracy:8.3f}")
     
     # Restore original state
     model.confidence_threshold_multiplier = original_multiplier

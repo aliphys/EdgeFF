@@ -1,0 +1,291 @@
+MNIST_One_Pass
+layers (hidden depth): 3
+[784, 400, 400, 400]
+Configuration:
+  Selected classes: None
+  Filter by layer: None
+  Target layer: 2
+  Correct only: False
+  Run specialization: True
+  Run energy analysis: True
+  Compare energy methods: False
+  Goodness threshold: 2.0
+  Confidence threshold multiplier: 1.0
+  Train: False (from --train False)
+Moving model to CPU for inference...
+Moving data to CPU for inference...
+✓ Model and data moved to CPU for inference
+
+Results for the [1mTRAIN[0m set: 
+	F1-score:  0.9638843499502533
+	Accuracy:  0.96425
+	Error: 0.035749971866607666
+
+Results for the [1mTEST[0m set: 
+	F1-score:  0.9505844315561138
+	Accuracy:  0.9511
+	Error: 0.04890000820159912
+
+Results for the [1mVALIDATION[0m set: 
+	F1-score:  0.9615113284393028
+	Accuracy:  0.9622
+	Error: 0.03780001401901245
+Averaged mean:  16.35142373599043
+Averaged std:  4.743684292015562
+Averaged mean_all_incorrect_labels:  -15.326859542296187
+Averaged std_all_incorrect_labels:  9.449863767861059
+Averaged mean:  25.39169444846614
+Averaged std:  7.186536838347516
+Averaged mean_all_incorrect_labels:  -24.229736406611153
+Averaged std_all_incorrect_labels:  14.418219491088053
+Averaged mean:  57.63557035262255
+Averaged std:  15.35603248220312
+Averaged mean_all_incorrect_labels:  -25.029609222154868
+Averaged std_all_incorrect_labels:  21.14377500432058
+
+Results for the [1mVALIDATION[0m set based on light inference: 
+	F1-score:  0.9515495747832834
+	Accuracy:  0.952
+	Error: 0.04799997806549072
+mean number of layers used:  1.3242
+percentage for layers_up_to  [1. 2. 3.]  :  [0.8182 0.0394 0.1424]
+
+--- Fixed Layer Evaluation ---
+Layer 0 only - Accuracy: 0.9553
+Layer 1 only - Accuracy: 0.9539
+Layer 2 only - Accuracy: 0.9511
+
+--- Starting Layer Specialization Analysis ---
+
+======================================================================
+    LAYER PERFORMANCE DEGRADATION ANALYSIS
+======================================================================
+
+1. INDIVIDUAL LAYER PERFORMANCE:
+----------------------------------------
+   Layer 0 only: 0.9553 (95.5%)
+   Layer 1 only: 0.9539 (95.4%)
+   Layer 2 only: 0.9511 (95.1%)
+
+   Performance differences:
+   Layer 1 vs Layer 0: -0.0014 (-0.1%)
+   Layer 2 vs Layer 1: -0.0028 (-0.3%)
+
+2. LAYER REPRESENTATION ANALYSIS:
+----------------------------------------
+
+   Layer 0 (400 neurons):
+     Activation mean:   0.3252
+     Activation std:    0.7934
+     Sparsity (% zeros):  78.7%
+     Saturation (>5.0):    0.2%
+     Value range:       9.2436
+     Goodness mean:     0.7352
+     Goodness std:      0.3335
+     Goodness range:    1.9900
+
+   Layer 1 (400 neurons):
+     Activation mean:   0.1661
+     Activation std:    1.4840
+     Sparsity (% zeros):  95.9%
+     Saturation (>5.0):    1.3%
+     Value range:      39.3046
+     Goodness mean:     2.2298
+     Goodness std:      1.4415
+     Goodness range:    5.5172
+
+   Layer 2 (400 neurons):
+     Activation mean:   0.5064
+     Activation std:    1.4634
+     Sparsity (% zeros):  79.6%
+     Saturation (>5.0):    3.2%
+     Value range:      16.4432
+     Goodness mean:     2.3980
+     Goodness std:      1.1309
+     Goodness range:    4.1937
+
+3. CLASS DISCRIMINATION ANALYSIS:
+----------------------------------------
+
+   Layer 0 class separation:
+     Class 0: goodness = 0.8619
+     Class 1: goodness = 0.6554
+     Class 2: goodness = 0.7526
+     Class 3: goodness = 0.6980
+     Class 4: goodness = 0.6855
+     Class 5: goodness = 0.7844
+     Class 6: goodness = 0.8206
+     Class 7: goodness = 0.7529
+     Class 8: goodness = 0.7670
+     Class 9: goodness = 0.6466
+     Separation std:   0.0670
+     Separation range: 0.2153
+
+   Layer 1 class separation:
+     Class 0: goodness = 2.2951
+     Class 1: goodness = 3.9126
+     Class 2: goodness = 1.3051
+     Class 3: goodness = 1.7126
+     Class 4: goodness = 2.1311
+     Class 5: goodness = 1.7927
+     Class 6: goodness = 2.2886
+     Class 7: goodness = 2.3886
+     Class 8: goodness = 1.6337
+     Class 9: goodness = 2.2196
+     Separation std:   0.6712
+     Separation range: 2.6074
+
+   Layer 2 class separation:
+     Class 0: goodness = 2.3015
+     Class 1: goodness = 3.4669
+     Class 2: goodness = 1.7335
+     Class 3: goodness = 2.0531
+     Class 4: goodness = 2.4753
+     Class 5: goodness = 2.1428
+     Class 6: goodness = 2.3712
+     Class 7: goodness = 2.5936
+     Class 8: goodness = 1.9715
+     Class 9: goodness = 2.4288
+     Separation std:   0.4456
+     Separation range: 1.7334
+
+4. INFORMATION BOTTLENECK ANALYSIS:
+----------------------------------------
+   Input entropy: 4.0212
+   Layer 0 entropy: 4.6465 (compression: 0.87x)
+   Layer 1 entropy: 2.1713 (compression: 1.85x)
+   Layer 2 entropy: 3.9443 (compression: 1.02x)
+
+5. LEARNING EFFICIENCY ANALYSIS:
+----------------------------------------
+   Why deeper layers may not help in Forward-Forward:
+   • Each layer learns independently (no gradient flow)
+   • Information bottleneck: 784 → 100 neurons
+   • Goodness function may not scale well with depth
+   • Local optima: each layer optimizes separately
+
+6. OPTIMIZATION RECOMMENDATIONS:
+----------------------------------------
+   ⚠️  High sparsity detected - consider wider layers
+
+   Suggested improvements:
+   1. Increase layer width: [784, 400, 300, 200] instead of [784, 100, 100, 100]
+   2. Try alternative goodness functions (top-k, entropy-based)
+   3. Consider skip connections or hierarchical training
+   4. Experiment with different activation functions
+   5. Use progressive layer training (freeze earlier layers)
+
+======================================================================
+
+--- Running Layer Specialization Analysis ---
+Analyzing layer 0...
+  Layer 0, Class 0: 0.9827
+  Layer 0, Class 1: 0.9921
+  Layer 0, Class 2: 0.9486
+  Layer 0, Class 3: 0.9396
+  Layer 0, Class 4: 0.9277
+  Layer 0, Class 5: 0.9507
+  Layer 0, Class 6: 0.9635
+  Layer 0, Class 7: 0.9494
+  Layer 0, Class 8: 0.9456
+  Layer 0, Class 9: 0.9485
+Analyzing layer 1...
+  Layer 1, Class 0: 0.9867
+  Layer 1, Class 1: 0.9868
+  Layer 1, Class 2: 0.9516
+  Layer 1, Class 3: 0.9485
+  Layer 1, Class 4: 0.9399
+  Layer 1, Class 5: 0.9473
+  Layer 1, Class 6: 0.9624
+  Layer 1, Class 7: 0.9562
+  Layer 1, Class 8: 0.9271
+  Layer 1, Class 9: 0.9277
+Analyzing layer 2...
+  Layer 2, Class 0: 0.9816
+  Layer 2, Class 1: 0.9841
+  Layer 2, Class 2: 0.9438
+  Layer 2, Class 3: 0.9495
+  Layer 2, Class 4: 0.9369
+  Layer 2, Class 5: 0.9361
+  Layer 2, Class 6: 0.9603
+  Layer 2, Class 7: 0.9533
+  Layer 2, Class 8: 0.9353
+  Layer 2, Class 9: 0.9247
+Layer specialization matrix saved to: /home/jetson/Documents/github/EdgeFF/output/layer_specialization_matrix_20251013_203249.png
+
+--- Specialization Analysis Results ---
+Specialization Matrix (Layer x Class):
+[[0.98265306 0.99207048 0.94864341 0.93960396 0.92769857 0.95067265
+  0.96346555 0.94941634 0.94558522 0.94846383]
+ [0.98673469 0.98678414 0.95155039 0.94851485 0.93991853 0.94730942
+  0.96242171 0.95622568 0.92710472 0.92765114]
+ [0.98163265 0.98414097 0.94379845 0.94950495 0.93686354 0.93609865
+  0.96033403 0.95330739 0.93531828 0.9246779 ]]
+
+Best layer for each class:
+Class 0: Layer 1 (accuracy: 0.9867)
+Class 1: Layer 0 (accuracy: 0.9921)
+Class 2: Layer 1 (accuracy: 0.9516)
+Class 3: Layer 2 (accuracy: 0.9495)
+Class 4: Layer 1 (accuracy: 0.9399)
+Class 5: Layer 0 (accuracy: 0.9507)
+Class 6: Layer 0 (accuracy: 0.9635)
+Class 7: Layer 1 (accuracy: 0.9562)
+Class 8: Layer 0 (accuracy: 0.9456)
+Class 9: Layer 0 (accuracy: 0.9485)
+
+Layer specialization scores (higher = more specialized):
+Layer 0: 0.000341
+Layer 1: 0.000392
+Layer 2: 0.000354
+
+--- Data Filtering Impact ---
+Original data size: 10000
+Filtered data size: 10000
+Retention rate: 100.0%
+
+==================================================
+RUNNING ENERGY ANALYSIS
+==================================================
+Resetting model state...
+Current multiplier: 1.0
+Reset multiplier to: 1.0
+
+======================================================================
+STARTING CONFIDENCE MECHANISM DEBUGGING
+======================================================================
+
+=== Confidence Mechanism Debugging ===
+
+Confidence Vector Statistics:
+Layer 0: mean=16.351424, std=4.743684, std/mean ratio=0.290108
+Layer 1: mean=25.391694, std=7.186537, std/mean ratio=0.283027
+Layer 2: mean=57.635570, std=15.356032, std/mean ratio=0.266433
+
+Threshold Analysis for Different Multipliers:
+Multiplier | Layer 0 Threshold | Layer 1 Threshold | Layer 2 Threshold
+---------------------------------------------------------------------------------
+       3.0 |          2.120371 |          3.832084 |         11.567473
+
+Actual Softmax Outputs Analysis (first 3 samples):
+
+Sample 0 (true label: 7):
+  Layer 0: max_softmax=0.999997, predicted_class=7
+    Mult 0.1: threshold=15.877055, passes=False
+    Mult 1.0: threshold=11.607739, passes=False
+    Mult 2.0: threshold=6.864055, passes=False
+    Mult 3.0: threshold=2.120371, passes=False
+  Layer 1: max_softmax=1.000000, predicted_class=7
+    Mult 0.1: threshold=24.673041, passes=False
+    Mult 1.0: threshold=18.205158, passes=False
+    Mult 2.0: threshold=11.018621, passes=False
+    Mult 3.0: threshold=3.832084, passes=False
+  Layer 2: max_softmax=1.000000, predicted_class=7
+    Mult 0.1: threshold=56.099967, passes=False
+    Mult 1.0: threshold=42.279538, passes=False
+    Mult 2.0: threshold=26.923505, passes=False
+    Mult 3.0: threshold=11.567473, passes=False
+
+Sample 1 (true label: 2):
+  Layer 0: max_softmax=1.000000, predicted_class=2
+    Mult 0.1: threshold=15.877055, passes=False

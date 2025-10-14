@@ -1,0 +1,61 @@
+MNIST_One_Pass
+layers (hidden depth): 2
+[784, 100, 100]
+Configuration:
+  Selected classes: None
+  Filter by layer: None
+  Target layer: 1
+  Correct only: False
+  Run specialization: False
+  Run energy analysis: False
+  Compare energy methods: False
+  Goodness threshold: 2.0
+  Confidence threshold multiplier: 1.0
+  Train: False (from --train False)
+Moving model to CPU for inference...
+Moving data to CPU for inference...
+✓ Model and data moved to CPU for inference
+
+Results for the [1mTRAIN[0m set: 
+	F1-score:  0.9519394001006074
+	Accuracy:  0.9523666666666667
+	Error: 0.047633349895477295
+
+Results for the [1mTEST[0m set: 
+	F1-score:  0.9455176641950936
+	Accuracy:  0.9461
+	Error: 0.05390000343322754
+
+Results for the [1mVALIDATION[0m set: 
+	F1-score:  0.9519165868289134
+	Accuracy:  0.9526
+	Error: 0.04739999771118164
+Averaged mean:  7.195107861756303
+Averaged std:  2.225370644226612
+Averaged mean_all_incorrect_labels:  -6.31037401322349
+Averaged std_all_incorrect_labels:  3.7296922411457754
+Averaged mean:  8.3533243498615
+Averaged std:  2.4663838179327398
+Averaged mean_all_incorrect_labels:  -12.57485613218276
+Averaged std_all_incorrect_labels:  6.077793005500923
+
+Results for the [1mVALIDATION[0m set based on light inference: 
+	F1-score:  0.9458141814842023
+	Accuracy:  0.9464
+	Error: 0.053600013256073
+mean number of layers used:  1.2435
+percentage for layers_up_to  [1. 2.]  :  [0.7565 0.2435]
+
+--- Fixed Layer Evaluation ---
+Layer 0 only - Accuracy: 0.9470
+Layer 1 only - Accuracy: 0.9461
+
+--- Layer Specialization Analysis Skipped ---
+To run specialization analysis, use: --run_specialization
+Example: python Main.py --selected_classes 0 1 2 3 4 5 6 7 8 9 --run_specialization
+
+--- Energy Analysis Skipped ---
+To run energy consumption analysis, use: --run_energy_analysis
+To run validation of two-phase analysis, add: --compare_energy_methods
+Example: python Main.py --selected_classes 0 1 2 3 4 5 6 7 8 9 --run_energy_analysis
+Example: python Main.py --selected_classes 0 1 2 3 4 5 6 7 8 9 --run_energy_analysis --compare_energy_methods

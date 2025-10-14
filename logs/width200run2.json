@@ -1,0 +1,464 @@
+{
+  "model_info": {
+    "hidden_layers": 3,
+    "architecture": [
+      784,
+      200,
+      200,
+      200
+    ]
+  },
+  "configuration": {
+    "selected_classes": "None",
+    "filter_by_layer": "None",
+    "target_layer": 2,
+    "correct_only": false,
+    "run_specialization": true,
+    "run_energy_analysis": true,
+    "goodness_threshold": 2.0,
+    "confidence_threshold_multiplier": 1.0
+  },
+  "dataset_results": {
+    "test": {
+      "f1_score": 0.9571262788750626,
+      "accuracy": 0.9578,
+      "error": 0.04220002889633179
+    },
+    "validation": {
+      "f1_score": 0.9571262788750626,
+      "accuracy": 0.9578,
+      "error": 0.04220002889633179
+    }
+  },
+  "layer_analysis": {
+    "fixed_layer_accuracy": {
+      "layer_0": 0.953,
+      "layer_1": 0.9544,
+      "layer_2": 0.9509
+    },
+    "confidence_statistics": [
+      {
+        "layer": 0,
+        "mean": 9.257943,
+        "std": 2.877171,
+        "std_mean_ratio": 0.310779
+      },
+      {
+        "layer": 1,
+        "mean": 14.04578,
+        "std": 4.186421,
+        "std_mean_ratio": 0.298055
+      },
+      {
+        "layer": 2,
+        "mean": 22.518901,
+        "std": 6.383686,
+        "std_mean_ratio": 0.283481
+      }
+    ]
+  },
+  "specialization": {
+    "scores": {
+      "layer_0": 0.000429,
+      "layer_1": 0.000412,
+      "layer_2": 0.000546
+    },
+    "best_layer_per_class": {
+      "class_0": {
+        "best_layer": 1,
+        "accuracy": 0.9878
+      },
+      "class_1": {
+        "best_layer": 0,
+        "accuracy": 0.9833
+      },
+      "class_2": {
+        "best_layer": 1,
+        "accuracy": 0.9661
+      },
+      "class_3": {
+        "best_layer": 2,
+        "accuracy": 0.9396
+      },
+      "class_4": {
+        "best_layer": 2,
+        "accuracy": 0.9542
+      },
+      "class_5": {
+        "best_layer": 0,
+        "accuracy": 0.9518
+      },
+      "class_6": {
+        "best_layer": 1,
+        "accuracy": 0.9614
+      },
+      "class_7": {
+        "best_layer": 1,
+        "accuracy": 0.9426
+      },
+      "class_8": {
+        "best_layer": 0,
+        "accuracy": 0.9548
+      },
+      "class_9": {
+        "best_layer": 0,
+        "accuracy": 0.9286
+      }
+    }
+  },
+  "energy_analysis": {
+    "baseline": {
+      "per_sample_mj": 15.717,
+      "total_energy_j": 164.70625,
+      "total_samples": 10000,
+      "communication_energy_mj": 0.1881712552988352,
+      "per_sample_mj_with_comm": 15.905171255298836
+    },
+    "multiplier_results": [
+      {
+        "multiplier": 0.1,
+        "total_energy_j": 164.70625,
+        "per_sample_mj": 16.471,
+        "overall_accuracy": 6.445,
+        "exit_distribution": [
+          {
+            "layer": 1,
+            "samples": 7958,
+            "accuracy": 0.9937,
+            "per_sample_mj": 16.199,
+            "total_mj": 128910.25,
+            "avg_power_w": 6.445,
+            "cpu_gpu_power_w": 1.578,
+            "soc_power_w": 2.402,
+            "cumulative_accuracy": 0.9937,
+            "cumulative_energy_mj": 16.199,
+            "cumulative_time_ms": 0.715,
+            "communication_energy_mj": 0.0
+          },
+          {
+            "layer": 2,
+            "samples": 702,
+            "accuracy": 0.9587,
+            "per_sample_mj": 18.535,
+            "total_mj": 13011.5,
+            "avg_power_w": 6.506,
+            "cpu_gpu_power_w": 1.612,
+            "soc_power_w": 2.416,
+            "cumulative_accuracy": 0.9909,
+            "cumulative_energy_mj": 16.388,
+            "cumulative_time_ms": 0.738,
+            "communication_energy_mj": 0.9215046782509069
+          },
+          {
+            "layer": 3,
+            "samples": 1340,
+            "accuracy": 0.6948,
+            "per_sample_mj": 17.003,
+            "total_mj": 22784.5,
+            "avg_power_w": 6.51,
+            "cpu_gpu_power_w": 1.621,
+            "soc_power_w": 2.416,
+            "cumulative_accuracy": 0.9512,
+            "cumulative_energy_mj": 16.471,
+            "cumulative_time_ms": 0.809,
+            "communication_energy_mj": 0.9215046782509069
+          }
+        ],
+        "energy_savings_pct": -4.8,
+        "communication_energy_mj": 0.1881712552988352,
+        "per_sample_mj_with_comm": 16.659171255298837
+      },
+      {
+        "multiplier": 0.5,
+        "total_energy_j": 165.628,
+        "per_sample_mj": 16.563000000000002,
+        "overall_accuracy": 6.552,
+        "exit_distribution": [
+          {
+            "layer": 1,
+            "samples": 8191,
+            "accuracy": 0.9932,
+            "per_sample_mj": 16.398,
+            "total_mj": 134313.75,
+            "avg_power_w": 6.552,
+            "cpu_gpu_power_w": 1.614,
+            "soc_power_w": 2.416,
+            "cumulative_accuracy": 0.9932,
+            "cumulative_energy_mj": 16.398,
+            "cumulative_time_ms": 0.715,
+            "communication_energy_mj": 0.0
+          },
+          {
+            "layer": 2,
+            "samples": 694,
+            "accuracy": 0.9308,
+            "per_sample_mj": 16.651,
+            "total_mj": 11555.5,
+            "avg_power_w": 6.603,
+            "cpu_gpu_power_w": 1.629,
+            "soc_power_w": 2.416,
+            "cumulative_accuracy": 0.9883,
+            "cumulative_energy_mj": 16.417,
+            "cumulative_time_ms": 0.738,
+            "communication_energy_mj": 0.9215046782509069
+          },
+          {
+            "layer": 3,
+            "samples": 1115,
+            "accuracy": 0.6565,
+            "per_sample_mj": 17.721,
+            "total_mj": 19758.75,
+            "avg_power_w": 6.586,
+            "cpu_gpu_power_w": 1.627,
+            "soc_power_w": 2.416,
+            "cumulative_accuracy": 0.9513,
+            "cumulative_energy_mj": 16.563,
+            "cumulative_time_ms": 0.797,
+            "communication_energy_mj": 0.9215046782509069
+          }
+        ],
+        "energy_savings_pct": -5.38,
+        "communication_energy_mj": 0.16670019629558905,
+        "per_sample_mj_with_comm": 16.729700196295592
+      },
+      {
+        "multiplier": 1.0,
+        "total_energy_j": 165.1705,
+        "per_sample_mj": 16.517,
+        "overall_accuracy": 6.525,
+        "exit_distribution": [
+          {
+            "layer": 1,
+            "samples": 8565,
+            "accuracy": 0.9904,
+            "per_sample_mj": 16.38,
+            "total_mj": 140293.5,
+            "avg_power_w": 6.525,
+            "cpu_gpu_power_w": 1.617,
+            "soc_power_w": 2.392,
+            "cumulative_accuracy": 0.9904,
+            "cumulative_energy_mj": 16.38,
+            "cumulative_time_ms": 0.733,
+            "communication_energy_mj": 0.0
+          },
+          {
+            "layer": 2,
+            "samples": 539,
+            "accuracy": 0.8924,
+            "per_sample_mj": 18.403,
+            "total_mj": 9919.0,
+            "avg_power_w": 6.611,
+            "cpu_gpu_power_w": 1.641,
+            "soc_power_w": 2.423,
+            "cumulative_accuracy": 0.9846,
+            "cumulative_energy_mj": 16.5,
+            "cumulative_time_ms": 0.75,
+            "communication_energy_mj": 0.9215046782509069
+          },
+          {
+            "layer": 3,
+            "samples": 896,
+            "accuracy": 0.615,
+            "per_sample_mj": 16.694,
+            "total_mj": 14958.0,
+            "avg_power_w": 6.648,
+            "cpu_gpu_power_w": 1.642,
+            "soc_power_w": 2.438,
+            "cumulative_accuracy": 0.9515,
+            "cumulative_energy_mj": 16.517,
+            "cumulative_time_ms": 0.804,
+            "communication_energy_mj": 0.9215046782509069
+          }
+        ],
+        "energy_savings_pct": -5.09,
+        "communication_energy_mj": 0.13223592132900513,
+        "per_sample_mj_with_comm": 16.649235921329005
+      },
+      {
+        "multiplier": 1.5,
+        "total_energy_j": 167.495,
+        "per_sample_mj": 16.75,
+        "overall_accuracy": 6.629,
+        "exit_distribution": [
+          {
+            "layer": 1,
+            "samples": 8781,
+            "accuracy": 0.9887,
+            "per_sample_mj": 16.609,
+            "total_mj": 145841.5,
+            "avg_power_w": 6.629,
+            "cpu_gpu_power_w": 1.635,
+            "soc_power_w": 2.442,
+            "cumulative_accuracy": 0.9887,
+            "cumulative_energy_mj": 16.609,
+            "cumulative_time_ms": 0.825,
+            "communication_energy_mj": 0.0
+          },
+          {
+            "layer": 2,
+            "samples": 455,
+            "accuracy": 0.8418,
+            "per_sample_mj": 18.377,
+            "total_mj": 8361.75,
+            "avg_power_w": 6.696,
+            "cpu_gpu_power_w": 1.659,
+            "soc_power_w": 2.465,
+            "cumulative_accuracy": 0.9815,
+            "cumulative_energy_mj": 16.696,
+            "cumulative_time_ms": 0.847,
+            "communication_energy_mj": 0.9215046782509069
+          },
+          {
+            "layer": 3,
+            "samples": 764,
+            "accuracy": 0.5903,
+            "per_sample_mj": 17.398,
+            "total_mj": 13291.75,
+            "avg_power_w": 6.647,
+            "cpu_gpu_power_w": 1.645,
+            "soc_power_w": 2.44,
+            "cumulative_accuracy": 0.9516,
+            "cumulative_energy_mj": 16.75,
+            "cumulative_time_ms": 0.898,
+            "communication_energy_mj": 0.9215046782509069
+          }
+        ],
+        "energy_savings_pct": -6.57,
+        "communication_energy_mj": 0.11233142027878554,
+        "per_sample_mj_with_comm": 16.862331420278785
+      },
+      {
+        "multiplier": 2.0,
+        "total_energy_j": 165.4815,
+        "per_sample_mj": 16.548000000000002,
+        "overall_accuracy": 6.602,
+        "exit_distribution": [
+          {
+            "layer": 1,
+            "samples": 8908,
+            "accuracy": 0.9872,
+            "per_sample_mj": 16.504,
+            "total_mj": 147022.0,
+            "avg_power_w": 6.602,
+            "cpu_gpu_power_w": 1.641,
+            "soc_power_w": 2.425,
+            "cumulative_accuracy": 0.9872,
+            "cumulative_energy_mj": 16.504,
+            "cumulative_time_ms": 1.131,
+            "communication_energy_mj": 0.0
+          },
+          {
+            "layer": 2,
+            "samples": 416,
+            "accuracy": 0.8149,
+            "per_sample_mj": 20.172,
+            "total_mj": 8391.75,
+            "avg_power_w": 6.683,
+            "cpu_gpu_power_w": 1.658,
+            "soc_power_w": 2.446,
+            "cumulative_accuracy": 0.9795,
+            "cumulative_energy_mj": 16.668,
+            "cumulative_time_ms": 1.15,
+            "communication_energy_mj": 0.9215046782509069
+          },
+          {
+            "layer": 3,
+            "samples": 676,
+            "accuracy": 0.571,
+            "per_sample_mj": 14.893,
+            "total_mj": 10067.75,
+            "avg_power_w": 5.719,
+            "cpu_gpu_power_w": 1.433,
+            "soc_power_w": 2.087,
+            "cumulative_accuracy": 0.9519,
+            "cumulative_energy_mj": 16.548,
+            "cumulative_time_ms": 1.25,
+            "communication_energy_mj": 0.9215046782509069
+          }
+        ],
+        "energy_savings_pct": -5.29,
+        "communication_energy_mj": 0.10062831086499902,
+        "per_sample_mj_with_comm": 16.648628310865
+      },
+      {
+        "multiplier": 3.0,
+        "total_energy_j": 133.224,
+        "per_sample_mj": 13.322000000000001,
+        "overall_accuracy": 5.417,
+        "exit_distribution": [
+          {
+            "layer": 1,
+            "samples": 9093,
+            "accuracy": 0.9847,
+            "per_sample_mj": 13.542,
+            "total_mj": 123136.5,
+            "avg_power_w": 5.417,
+            "cpu_gpu_power_w": 1.365,
+            "soc_power_w": 1.974,
+            "cumulative_accuracy": 0.9847,
+            "cumulative_energy_mj": 13.542,
+            "cumulative_time_ms": 2.117,
+            "communication_energy_mj": 0.0
+          },
+          {
+            "layer": 2,
+            "samples": 359,
+            "accuracy": 0.7688,
+            "per_sample_mj": 13.981,
+            "total_mj": 5019.0,
+            "avg_power_w": 4.831,
+            "cpu_gpu_power_w": 1.204,
+            "soc_power_w": 1.772,
+            "cumulative_accuracy": 0.9765,
+            "cumulative_energy_mj": 13.559,
+            "cumulative_time_ms": 2.169,
+            "communication_energy_mj": 0.9215046782509069
+          },
+          {
+            "layer": 3,
+            "samples": 548,
+            "accuracy": 0.5383,
+            "per_sample_mj": 9.249,
+            "total_mj": 5068.5,
+            "avg_power_w": 3.7,
+            "cpu_gpu_power_w": 0.932,
+            "soc_power_w": 1.345,
+            "cumulative_accuracy": 0.9525,
+            "cumulative_energy_mj": 13.322,
+            "cumulative_time_ms": 2.264,
+            "communication_energy_mj": 0.9215046782509069
+          }
+        ],
+        "energy_savings_pct": 15.24,
+        "communication_energy_mj": 0.08358047431735725,
+        "per_sample_mj_with_comm": 13.405580474317357
+      }
+    ]
+  },
+  "communication_config": {
+    "enabled": true,
+    "transmit_power_w": 0.15081,
+    "transmit_current_ma": 45.7,
+    "voltage_v": 3.3,
+    "data_rate_mbps": 1.0474,
+    "bytes_per_activation": 4,
+    "activation_sizes_bytes": {
+      "width_100": {
+        "layer_1": 400,
+        "layer_2": 400,
+        "layer_3": 400
+      },
+      "width_200": {
+        "layer_1": 800,
+        "layer_2": 800,
+        "layer_3": 800
+      },
+      "width_300": {
+        "layer_1": 1200,
+        "layer_2": 1200,
+        "layer_3": 1200
+      }
+    },
+    "note": "Layer 1 is on-device (no communication). Layer 2+ requires data transmission."
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "model_info": {
+    "hidden_layers": 3,
+    "architecture": [
+      784,
+      400,
+      400,
+      400
+    ]
+  },
+  "configuration": {
+    "selected_classes": "None",
+    "filter_by_layer": "None",
+    "target_layer": 2,
+    "correct_only": false,
+    "run_specialization": true,
+    "run_energy_analysis": true,
+    "goodness_threshold": 2.0,
+    "confidence_threshold_multiplier": 1.0
+  },
+  "dataset_results": {
+    "test": {
+      "f1_score": 0.9615113284393028,
+      "accuracy": 0.9622,
+      "error": 0.03780001401901245
+    },
+    "validation": {
+      "f1_score": 0.9615113284393028,
+      "accuracy": 0.9622,
+      "error": 0.03780001401901245
+    }
+  },
+  "layer_analysis": {
+    "fixed_layer_accuracy": {
+      "layer_0": 0.9553,
+      "layer_1": 0.9539,
+      "layer_2": 0.9511
+    },
+    "confidence_statistics": [
+      {
+        "layer": 0,
+        "mean": 16.351424,
+        "std": 4.743684,
+        "std_mean_ratio": 0.290108
+      },
+      {
+        "layer": 1,
+        "mean": 25.391694,
+        "std": 7.186537,
+        "std_mean_ratio": 0.283027
+      },
+      {
+        "layer": 2,
+        "mean": 57.63557,
+        "std": 15.356032,
+        "std_mean_ratio": 0.266433
+      }
+    ]
+  },
+  "specialization": {
+    "scores": {
+      "layer_0": 0.000341,
+      "layer_1": 0.000392,
+      "layer_2": 0.000354
+    },
+    "best_layer_per_class": {
+      "class_0": {
+        "best_layer": 1,
+        "accuracy": 0.9867
+      },
+      "class_1": {
+        "best_layer": 0,
+        "accuracy": 0.9921
+      },
+      "class_2": {
+        "best_layer": 1,
+        "accuracy": 0.9516
+      },
+      "class_3": {
+        "best_layer": 2,
+        "accuracy": 0.9495
+      },
+      "class_4": {
+        "best_layer": 1,
+        "accuracy": 0.9399
+      },
+      "class_5": {
+        "best_layer": 0,
+        "accuracy": 0.9507
+      },
+      "class_6": {
+        "best_layer": 0,
+        "accuracy": 0.9635
+      },
+      "class_7": {
+        "best_layer": 1,
+        "accuracy": 0.9562
+      },
+      "class_8": {
+        "best_layer": 0,
+        "accuracy": 0.9456
+      },
+      "class_9": {
+        "best_layer": 0,
+        "accuracy": 0.9485
+      }
+    }
+  },
+  "energy_analysis": {
+    "multiplier_results": []
+  },
+  "communication_config": {
+    "enabled": true,
+    "transmit_power_w": 0.15081,
+    "transmit_current_ma": 45.7,
+    "voltage_v": 3.3,
+    "data_rate_mbps": 1.0474,
+    "bytes_per_activation": 4,
+    "activation_sizes_bytes": {
+      "width_100": {
+        "layer_1": 400,
+        "layer_2": 400,
+        "layer_3": 400
+      },
+      "width_200": {
+        "layer_1": 800,
+        "layer_2": 800,
+        "layer_3": 800
+      },
+      "width_300": {
+        "layer_1": 1200,
+        "layer_2": 1200,
+        "layer_3": 1200
+      }
+    },
+    "note": "Layer 1 is on-device (no communication). Layer 2+ requires data transmission."
+  }
+}

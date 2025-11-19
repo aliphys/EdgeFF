@@ -1,0 +1,17 @@
+[project]
+name = "edgeff"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "tensorflow",
+    "matplotlib",
+    "six",
+    "wandb",
+    "weave",
+    "torch",
+    "torchaudio",
+    "torchvision",
+    "python-dotenv",
+]

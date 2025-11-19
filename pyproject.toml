@@ -8,10 +8,10 @@ dependencies = [
     "tensorflow",
     "matplotlib",
     "six",
-    "wandb",
-    "weave",
     "torch",
     "torchaudio",
     "torchvision",
     "python-dotenv",
+    "wandb",
+    "weave",
 ]

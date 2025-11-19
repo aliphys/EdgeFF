@@ -1,28 +1,22 @@
 from __future__ import print_function
 
 import argparse
-# workaround to fetch MNIST data
 import os
-import sys
+from pathlib import Path
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
 import wandb
+from dotenv import load_dotenv
 from torchvision import datasets, transforms
 
-tv_version = torchvision.__version__
-print("torchvision version:", tv_version, file=sys.stderr)
-if tuple(map(lambda x: int(x), tv_version.split(".")[:2])) <= (0, 5):
-    url = "https://activeeon-public.s3.eu-west-2.amazonaws.com/datasets/MNIST.old.tar.gz"
-else:
-    url = "https://activeeon-public.s3.eu-west-2.amazonaws.com/datasets/MNIST.new.tar.gz"
-print("download:", url, file=sys.stderr)
+# Load .env file from the root directory
+root_dir = Path(__file__).resolve().parent.parent.parent
+dotenv_path = root_dir / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
-os.system("wget -O MNIST.tar.gz {}".format(url))
-os.system("tar -zxvf MNIST.tar.gz")
 
 class Net(nn.Module):
     def __init__(self):
@@ -87,14 +81,6 @@ def test(args, model, device, test_loader):
 
 
 def main():
-
-    # Workaround torchvision bug
-    # https://github.com/pytorch/vision/issues/1938
-    from six.moves import urllib
-    opener = urllib.request.build_opener()
-    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-    urllib.request.install_opener(opener)
-
     wandb.init(project="pytorch-cnn-mnist.py")
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')

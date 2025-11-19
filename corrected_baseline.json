@@ -1,0 +1,38 @@
+{
+  "100": {
+    "width": 100,
+    "compute_time_ms": 0.802,
+    "compute_energy_mj": 5.238664000000001,
+    "communication_energy_mj": 0.9215046782509069,
+    "total_energy_mj": 6.1601686782509075,
+    "upload_time_L2_ms": 3.0551842658010306,
+    "upload_time_L3_ms": 3.0551842658010306,
+    "network_latency_ms": 206.11036853160206,
+    "total_latency_ms": 206.91236853160206,
+    "avg_power_w": 6.532
+  },
+  "200": {
+    "width": 200,
+    "compute_time_ms": 0.809,
+    "compute_energy_mj": 5.293287,
+    "communication_energy_mj": 1.8430093565018137,
+    "total_energy_mj": 7.1362963565018145,
+    "upload_time_L2_ms": 6.110368531602061,
+    "upload_time_L3_ms": 6.110368531602061,
+    "network_latency_ms": 212.22073706320413,
+    "total_latency_ms": 213.02973706320412,
+    "avg_power_w": 6.543
+  },
+  "300": {
+    "width": 300,
+    "compute_time_ms": 0.874,
+    "compute_energy_mj": 5.694984,
+    "communication_energy_mj": 2.7645140347527213,
+    "total_energy_mj": 8.459498034752722,
+    "upload_time_L2_ms": 9.165552797403093,
+    "upload_time_L3_ms": 9.165552797403093,
+    "network_latency_ms": 218.3311055948062,
+    "total_latency_ms": 219.20510559480618,
+    "avg_power_w": 6.516
+  }
+}

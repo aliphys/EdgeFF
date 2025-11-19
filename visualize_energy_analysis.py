@@ -44,8 +44,24 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
         "configuration": runs[0]["configuration"],
         "layer_analysis": {},
         "specialization": {},
-        "energy_analysis": {}
+        "energy_analysis": {},
+        "dataset_results": {}
     }
+    
+    # Aggregate dataset results (test accuracy, etc.)
+    if "dataset_results" in runs[0]:
+        aggregated["dataset_results"] = {}
+        for dataset_type in ["test", "validation", "train"]:
+            if dataset_type in runs[0]["dataset_results"]:
+                dataset_dict = {}
+                for metric in ["accuracy", "f1_score", "error"]:
+                    if metric in runs[0]["dataset_results"][dataset_type]:
+                        values = [r["dataset_results"][dataset_type][metric] for r in runs 
+                                 if dataset_type in r.get("dataset_results", {})]
+                        dataset_dict[f"{metric}_mean"] = np.mean(values)
+                        dataset_dict[f"{metric}_std"] = np.std(values)
+                        dataset_dict[f"{metric}_values"] = values
+                aggregated["dataset_results"][dataset_type] = dataset_dict
     
     # Aggregate layer analysis
     if "layer_analysis" in runs[0] and "fixed_layer_accuracy" in runs[0]["layer_analysis"]:
@@ -74,6 +90,8 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
     # Aggregate baseline energy
     # Check if communication power is included
     has_comm_power = "per_sample_mj_with_comm" in runs[0]["energy_analysis"]["baseline"]
+    # Check if latency is included
+    has_latency = "average_latency_ms" in runs[0]["energy_analysis"]["baseline"]
     
     if has_comm_power:
         baseline_values = [r["energy_analysis"]["baseline"]["per_sample_mj_with_comm"] for r in runs]
@@ -85,8 +103,15 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
         "per_sample_mj_std": np.std(baseline_values),
         "per_sample_mj_values": baseline_values,
         "total_samples": runs[0]["energy_analysis"]["baseline"]["total_samples"],
-        "has_comm_power": has_comm_power
+        "has_comm_power": has_comm_power,
+        "has_latency": has_latency
     }
+    
+    # Add baseline latency if available
+    if has_latency:
+        baseline_latency_values = [r["energy_analysis"]["baseline"]["average_latency_ms"] for r in runs]
+        aggregated["energy_analysis"]["baseline"]["average_latency_ms_mean"] = np.mean(baseline_latency_values)
+        aggregated["energy_analysis"]["baseline"]["average_latency_ms_std"] = np.std(baseline_latency_values)
     
     # Aggregate multiplier results
     multipliers = [r["multiplier"] for r in runs[0]["energy_analysis"]["multiplier_results"]]
@@ -108,6 +133,7 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
         per_sample_values = []
         savings_values = []
         accuracy_values = []
+        latency_values = []
         
         for run in runs:
             for result in run["energy_analysis"]["multiplier_results"]:
@@ -123,6 +149,11 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
                     # Get cumulative accuracy from last exit layer
                     if result["exit_distribution"]:
                         accuracy_values.append(result["exit_distribution"][-1]["cumulative_accuracy"] * 100)
+                    
+                    # Get latency if available
+                    if has_latency and "average_latency_ms" in result:
+                        latency_values.append(result["average_latency_ms"])
+                    
                     break
         
         mult_data["per_sample_mj_mean"] = np.mean(per_sample_values)
@@ -131,6 +162,11 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
         mult_data["energy_savings_pct_std"] = np.std(savings_values)
         mult_data["accuracy_mean"] = np.mean(accuracy_values)
         mult_data["accuracy_std"] = np.std(accuracy_values)
+        
+        # Add latency if available
+        if has_latency and latency_values:
+            mult_data["average_latency_ms_mean"] = np.mean(latency_values)
+            mult_data["average_latency_ms_std"] = np.std(latency_values)
         
         # Aggregate exit distribution (use mean across runs)
         exit_layers = [1, 2, 3]
@@ -410,7 +446,7 @@ def plot_energy_savings_highlight(data: Dict[int, Dict], output_dir: str = "outp
     fig, ax1 = plt.subplots(1, 1, figsize=(10, 7))
     
     widths = sorted(data.keys())
-    width_labels = [f'Width {w}' for w in widths]
+    width_labels = [f'{w}' for w in widths]  # Just the numbers, no "Width" prefix
     colors = ['#2ecc71', '#3498db', '#e74c3c']
     
     # === Energy Comparison (Baseline vs 3.0×) ===
@@ -462,13 +498,13 @@ def plot_energy_savings_highlight(data: Dict[int, Dict], output_dir: str = "outp
                 break
     
     ax1.set_xlabel('Network Width', fontsize=14, fontweight='bold')
-    ax1.set_ylabel('Energy per Sample (mJ)', fontsize=14, fontweight='bold', color='black')
+    ax1.set_ylabel('Average Energy per Sample (mJ)', fontsize=14, fontweight='bold', color='black')
     ax1.set_title('Energy Savings with Early Exit\n(n=5 runs)', 
                  fontsize=15, fontweight='bold', pad=15)
     ax1.set_xticks(x)
     ax1.set_xticklabels(width_labels, fontsize=12)
     ax1.legend(fontsize=11, loc='lower left', framealpha=0.95)
-    ax1.set_ylim(0, max(baseline_energy) + 2.5)
+    ax1.set_ylim(0, 19)
     ax1.tick_params(axis='y', labelcolor='black')
     
     # === Add second y-axis for accuracy ===
@@ -485,9 +521,67 @@ def plot_energy_savings_highlight(data: Dict[int, Dict], output_dir: str = "outp
                 color=accuracy_color, linewidth=2.5, marker='o', markersize=8, 
                 zorder=10)
     
-    ax2.set_ylabel('Accuracy (%)', fontsize=14, fontweight='bold', color=accuracy_color)
+    ax2.set_ylabel('Average Accuracy (%)', fontsize=14, fontweight='bold', color=accuracy_color)
     ax2.tick_params(axis='y', labelcolor=accuracy_color)
-    ax2.set_ylim(93, 100)
+    ax2.set_ylim(90, 100)
+    
+    # Check if latency data is available
+    has_latency = 'has_latency' in data[widths[0]]['energy_analysis']['baseline']
+    
+    # Get latency values if available
+    baseline_latency = []
+    baseline_latency_std = []
+    multiplier_3x_latency = []
+    multiplier_3x_latency_std = []
+    
+    if has_latency:
+        for width in widths:
+            # Baseline latency (from actual baseline - multiplier 1.0, all samples through all layers)
+            baseline_latency.append(data[width]['energy_analysis']['baseline'].get('average_latency_ms_mean', 0))
+            baseline_latency_std.append(data[width]['energy_analysis']['baseline'].get('average_latency_ms_std', 0))
+            
+            # 3.0× multiplier latency
+            for result in data[width]['energy_analysis']['multiplier_results']:
+                if result['multiplier'] == 3.0:
+                    multiplier_3x_latency.append(result.get('average_latency_ms_mean', 0))
+                    multiplier_3x_latency_std.append(result.get('average_latency_ms_std', 0))
+                    break
+        
+        # === Add third y-axis for latency ===
+        ax3 = ax1.twinx()
+        
+        # Offset the third axis to the right
+        ax3.spines['right'].set_position(('outward', 60))
+        
+        # Use orange color for latency
+        latency_color = '#ff7f0e'  # Orange
+        
+        # Plot latency lines connecting Full Network to Early Exit for each width
+        for i, width in enumerate(widths):
+            # Plot the line
+            ax3.plot([x[i] - width_bar/2, x[i] + width_bar/2], 
+                    [baseline_latency[i], multiplier_3x_latency[i]], 
+                    color=latency_color, linewidth=2.5, marker='s', markersize=8, 
+                    linestyle='--', zorder=10)
+            
+            # Add error bars at each endpoint
+            # Baseline error bar
+            ax3.errorbar(x[i] - width_bar/2, baseline_latency[i], 
+                        yerr=baseline_latency_std[i],
+                        fmt='none', ecolor=latency_color, elinewidth=2, capsize=5, capthick=2,
+                        zorder=10)
+            
+            # Early exit error bar
+            ax3.errorbar(x[i] + width_bar/2, multiplier_3x_latency[i], 
+                        yerr=multiplier_3x_latency_std[i],
+                        fmt='none', ecolor=latency_color, elinewidth=2, capsize=5, capthick=2,
+                        zorder=10)
+        
+        ax3.set_ylabel('Average Latency (ms)', fontsize=14, fontweight='bold', color=latency_color)
+        ax3.tick_params(axis='y', labelcolor=latency_color)
+        
+        # Set latency axis limits to accommodate baseline (~103-110 ms) and early exit (~10-20 ms)
+        ax3.set_ylim(0, 150)
     
     # Add percentage changes above each network width
     for i, (baseline_e, mult_3x_e, baseline_a, mult_3x_a) in enumerate(zip(
@@ -500,16 +594,26 @@ def plot_energy_savings_highlight(data: Dict[int, Dict], output_dir: str = "outp
         # Position above the bars
         y_pos = max(baseline_e, mult_3x_e) + 0.5
         
+        # Build annotation text
+        if has_latency and len(baseline_latency) > i and len(multiplier_3x_latency) > i:
+            latency_change = ((baseline_latency[i] - multiplier_3x_latency[i]) / baseline_latency[i]) * 100
+            annotation_text = (f'Energy: −{energy_change:.1f}%\n'
+                             f'Accuracy: +{accuracy_change:.2f}%\n'
+                             f'Latency: −{latency_change:.1f}%')
+        else:
+            annotation_text = f'Energy: −{energy_change:.1f}%\nAccuracy: +{accuracy_change:.2f}%'
+        
         # Add combined annotation
-        ax1.text(i, y_pos, 
-                f'Energy: −{energy_change:.1f}%\nAccuracy: +{accuracy_change:.2f}%',
-                ha='center', va='bottom', fontsize=12, fontweight='bold',
+        ax1.text(i, y_pos, annotation_text,
+                ha='center', va='bottom', fontsize=11, fontweight='bold',
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='lightyellow', alpha=0.9, edgecolor='gray'))
     
     plt.tight_layout()
     plt.grid(False)
     ax1.grid(False)
     ax2.grid(False)
+    if has_latency:
+        ax3.grid(False)
     output_path = Path(output_dir) / 'energy_savings_highlight.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"✓ Saved: {output_path}")
@@ -885,6 +989,149 @@ def plot_comprehensive_dashboard(data: Dict[int, Dict], output_dir: str = "outpu
     print(f"✓ Saved: {output_path}")
     plt.close()
 
+
+def plot_width100_comparison(data: Dict[int, Dict], output_dir: str = "output"):
+    """Plot horizontal bar comparison for Width 100: Energy, Latency, and Accuracy."""
+    if 100 not in data:
+        print("⚠ Width 100 data not found")
+        return
+    
+    width_100 = data[100]
+    
+    # Extract baseline and early exit (3.0x) values
+    baseline_energy = width_100['energy_analysis']['baseline']['per_sample_mj_mean']
+    baseline_energy_std = width_100['energy_analysis']['baseline']['per_sample_mj_std']
+    baseline_latency = width_100['energy_analysis']['baseline']['average_latency_ms_mean']
+    baseline_latency_std = width_100['energy_analysis']['baseline']['average_latency_ms_std']
+    
+    # Get accuracy from dataset results
+    if 'dataset_results' in width_100 and 'test' in width_100['dataset_results']:
+        baseline_accuracy = width_100['dataset_results']['test']['accuracy_mean'] * 100
+        baseline_accuracy_std = width_100['dataset_results']['test']['accuracy_std'] * 100
+    else:
+        baseline_accuracy = 94.0  # fallback
+        baseline_accuracy_std = 0.1
+    
+    # Find 3.0x multiplier results
+    early_exit_energy = None
+    early_exit_latency = None
+    early_exit_accuracy = None
+    
+    for result in width_100['energy_analysis']['multiplier_results']:
+        if result['multiplier'] == 3.0:
+            early_exit_energy = result['per_sample_mj_mean']
+            early_exit_energy_std = result['per_sample_mj_std']
+            early_exit_latency = result['average_latency_ms_mean']
+            early_exit_latency_std = result['average_latency_ms_std']
+            early_exit_accuracy = result['accuracy_mean']
+            early_exit_accuracy_std = result['accuracy_std']
+            break
+    
+    if early_exit_energy is None:
+        print("⚠ Early exit (3.0x) data not found for Width 100")
+        return
+    
+    # Create figure with 3 rows, 1 column
+    fig, axes = plt.subplots(3, 1, figsize=(12, 10))
+    
+    # Colors
+    color_baseline = '#95a5a6'
+    color_early_exit = '#27ae60'
+    
+    # --- Plot 1: Energy (mJ) ---
+    ax1 = axes[0]
+    categories = ['Early Exit', 'Full Network']  # Reversed order - Full Network on top
+    energy_values = [early_exit_energy, baseline_energy]  # Reversed order
+    energy_errors = [early_exit_energy_std, baseline_energy_std]  # Reversed order
+    colors = [color_early_exit, color_baseline]  # Reversed order
+    
+    bars1 = ax1.barh(categories, energy_values, xerr=energy_errors, 
+                     color=colors, alpha=0.8, capsize=5, 
+                     error_kw={'linewidth': 2},
+                     label=['Early Exit', 'Full Network'])
+    
+    # Add value labels at the end of bars
+    for i, (bar, val, err) in enumerate(zip(bars1, energy_values, energy_errors)):
+        ax1.text(val + err + 0.3, bar.get_y() + bar.get_height()/2, 
+                f'{val:.2f} mJ',
+                va='center', ha='left', fontsize=30, fontweight='bold')
+    
+    # Remove axes, gridlines, and title
+    ax1.set_yticks([])
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+    ax1.spines['left'].set_visible(False)
+    ax1.spines['bottom'].set_visible(False)
+    ax1.set_xticks([])
+    ax1.grid(False)
+    ax1.set_xlim(0, max(energy_values) + max(energy_errors) + 2)
+    
+    # --- Plot 2: Latency (ms) ---
+    ax2 = axes[1]
+    latency_values = [early_exit_latency, baseline_latency]  # Reversed order
+    latency_errors = [early_exit_latency_std, baseline_latency_std]  # Reversed order
+    
+    bars2 = ax2.barh(categories, latency_values, xerr=latency_errors,
+                     color=colors, alpha=0.8, capsize=5,
+                     error_kw={'linewidth': 2})
+    
+    # Add value labels at the end of bars
+    for i, (bar, val, err) in enumerate(zip(bars2, latency_values, latency_errors)):
+        ax2.text(val + err + 2, bar.get_y() + bar.get_height()/2,
+                f'{val:.2f} ms',
+                va='center', ha='left', fontsize=30, fontweight='bold')
+    
+    # Remove axes, gridlines, and title
+    ax2.set_yticks([])
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['right'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
+    ax2.spines['bottom'].set_visible(False)
+    ax2.set_xticks([])
+    ax2.grid(False)
+    ax2.set_xlim(0, max(latency_values) + max(latency_errors) + 10)
+    
+    # --- Plot 3: Accuracy (%) ---
+    ax3 = axes[2]
+    accuracy_values = [early_exit_accuracy, baseline_accuracy]  # Reversed order
+    accuracy_errors = [early_exit_accuracy_std, baseline_accuracy_std]  # Reversed order
+    
+    bars3 = ax3.barh(categories, accuracy_values, xerr=accuracy_errors,
+                     color=colors, alpha=0.8, capsize=5,
+                     error_kw={'linewidth': 2})
+    
+    # Add value labels at the end of bars
+    for i, (bar, val, err) in enumerate(zip(bars3, accuracy_values, accuracy_errors)):
+        ax3.text(val + err + 0.15, bar.get_y() + bar.get_height()/2,
+                f'{val:.2f}%',
+                va='center', ha='left', fontsize=30, fontweight='bold')
+    
+    # Remove axes, gridlines, and title
+    ax3.set_yticks([])
+    ax3.spines['top'].set_visible(False)
+    ax3.spines['right'].set_visible(False)
+    ax3.spines['left'].set_visible(False)
+    ax3.spines['bottom'].set_visible(False)
+    ax3.set_xticks([])
+    ax3.grid(False)
+    ax3.set_xlim(90, 100)
+    
+    # Add legend at the bottom
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=color_baseline, alpha=0.8, label='Full Network'),
+        Patch(facecolor=color_early_exit, alpha=0.8, label='Early Exit')
+    ]
+    fig.legend(handles=legend_elements, loc='lower center', ncol=2, 
+               fontsize=14, frameon=True, bbox_to_anchor=(0.5, -0.02))
+    
+    plt.tight_layout()
+    output_path = Path(output_dir) / 'width100_comparison.png'
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"✓ Saved: {output_path}")
+    plt.close()
+
+
 def main():
     """Main execution function."""
     print("="*70)
@@ -929,6 +1176,10 @@ def main():
     plot_energy_savings_highlight(data, output_dir)
     plot_progressive_multiplier_impact(data, output_dir)
     
+    # NEW: Generate Width 100 specific comparison
+    print("\n--- Generating Width 100 Comparison Plot ---")
+    plot_width100_comparison(data, output_dir)
+    
     print("\n" + "="*70)
     print("✅ ALL VISUALIZATIONS GENERATED SUCCESSFULLY")
     print(f"📁 Output directory: {output_dir.absolute()}")
@@ -937,6 +1188,7 @@ def main():
     print("\n📊 Key Plots for Demonstrating Energy Savings:")
     print("   • energy_savings_highlight.png - Direct baseline vs 3.0× comparison")
     print("   • progressive_multiplier_impact.png - Full multiplier progression")
+    print("   • width100_comparison.png - Width 100 Energy/Latency/Accuracy comparison")
     print("="*70)
 
 if __name__ == "__main__":

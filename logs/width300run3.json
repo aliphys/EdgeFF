@@ -109,10 +109,13 @@
   "energy_analysis": {
     "baseline": {
       "per_sample_mj": 16.044,
-      "total_energy_j": 164.44775,
+      "total_energy_j": 160.44,
       "total_samples": 10000,
+      "multiplier": 1.0,
+      "description": "All samples through all layers (no early exit)",
       "communication_energy_mj": 0.22627547374451018,
-      "per_sample_mj_with_comm": 16.270275473744512
+      "per_sample_mj_with_comm": 16.270275473744512,
+      "average_latency_ms": 110.0585527974031
     },
     "multiplier_results": [
       {
@@ -133,7 +136,10 @@
             "cumulative_accuracy": 0.9898,
             "cumulative_energy_mj": 16.339,
             "cumulative_time_ms": 0.804,
-            "communication_energy_mj": 0.0
+            "communication_energy_mj": 0.0,
+            "upload_time_ms": 0.0,
+            "network_rtt_ms": 0.0,
+            "total_latency_ms": 0.804
           },
           {
             "layer": 2,
@@ -147,7 +153,10 @@
             "cumulative_accuracy": 0.9843,
             "cumulative_energy_mj": 16.375,
             "cumulative_time_ms": 0.826,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 109.99155279740309
           },
           {
             "layer": 3,
@@ -161,12 +170,16 @@
             "cumulative_accuracy": 0.9479,
             "cumulative_energy_mj": 16.445,
             "cumulative_time_ms": 0.893,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.0585527974031
           }
         ],
         "energy_savings_pct": -2.5,
         "communication_energy_mj": 0.22627547374451018,
-        "per_sample_mj_with_comm": 16.67127547374451
+        "per_sample_mj_with_comm": 16.67127547374451,
+        "average_latency_ms": 18.685077592934885
       },
       {
         "multiplier": 0.5,
@@ -186,7 +199,10 @@
             "cumulative_accuracy": 0.9879,
             "cumulative_energy_mj": 16.307,
             "cumulative_time_ms": 0.812,
-            "communication_energy_mj": 0.0
+            "communication_energy_mj": 0.0,
+            "upload_time_ms": 0.0,
+            "network_rtt_ms": 0.0,
+            "total_latency_ms": 0.812
           },
           {
             "layer": 2,
@@ -200,7 +216,10 @@
             "cumulative_accuracy": 0.9805,
             "cumulative_energy_mj": 16.386,
             "cumulative_time_ms": 0.834,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 109.9995527974031
           },
           {
             "layer": 3,
@@ -214,12 +233,16 @@
             "cumulative_accuracy": 0.9482,
             "cumulative_energy_mj": 16.424,
             "cumulative_time_ms": 0.885,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.0505527974031
           }
         ],
         "energy_savings_pct": -2.37,
         "communication_energy_mj": 0.18522244032843233,
-        "per_sample_mj_with_comm": 16.60922244032843
+        "per_sample_mj_with_comm": 16.60922244032843,
+        "average_latency_ms": 15.447110074852016
       },
       {
         "multiplier": 1.0,
@@ -239,7 +262,10 @@
             "cumulative_accuracy": 0.9854,
             "cumulative_energy_mj": 16.6,
             "cumulative_time_ms": 0.869,
-            "communication_energy_mj": 0.0
+            "communication_energy_mj": 0.0,
+            "upload_time_ms": 0.0,
+            "network_rtt_ms": 0.0,
+            "total_latency_ms": 0.869
           },
           {
             "layer": 2,
@@ -253,7 +279,10 @@
             "cumulative_accuracy": 0.977,
             "cumulative_energy_mj": 16.643,
             "cumulative_time_ms": 0.885,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.0505527974031
           },
           {
             "layer": 3,
@@ -267,12 +296,16 @@
             "cumulative_accuracy": 0.9493,
             "cumulative_energy_mj": 16.64,
             "cumulative_time_ms": 0.927,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.09255279740309
           }
         ],
         "energy_savings_pct": -3.71,
         "communication_energy_mj": 0.1483161779644835,
-        "per_sample_mj_with_comm": 16.788316177964482
+        "per_sample_mj_with_comm": 16.788316177964482,
+        "average_latency_ms": 12.586700615161352
       },
       {
         "multiplier": 1.5,
@@ -292,7 +325,10 @@
             "cumulative_accuracy": 0.9831,
             "cumulative_energy_mj": 16.618,
             "cumulative_time_ms": 1.015,
-            "communication_energy_mj": 0.0
+            "communication_energy_mj": 0.0,
+            "upload_time_ms": 0.0,
+            "network_rtt_ms": 0.0,
+            "total_latency_ms": 1.015
           },
           {
             "layer": 2,
@@ -306,7 +342,10 @@
             "cumulative_accuracy": 0.9735,
             "cumulative_energy_mj": 16.734,
             "cumulative_time_ms": 1.027,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.1925527974031
           },
           {
             "layer": 3,
@@ -320,12 +359,16 @@
             "cumulative_accuracy": 0.9506,
             "cumulative_energy_mj": 16.752,
             "cumulative_time_ms": 1.079,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.24455279740309
           }
         ],
         "energy_savings_pct": -4.41,
         "communication_energy_mj": 0.1274440970021004,
-        "per_sample_mj_with_comm": 16.8794440970021
+        "per_sample_mj_with_comm": 16.8794440970021,
+        "average_latency_ms": 11.083702767920563
       },
       {
         "multiplier": 2.0,
@@ -345,7 +388,10 @@
             "cumulative_accuracy": 0.9807,
             "cumulative_energy_mj": 16.269,
             "cumulative_time_ms": 1.423,
-            "communication_energy_mj": 0.0
+            "communication_energy_mj": 0.0,
+            "upload_time_ms": 0.0,
+            "network_rtt_ms": 0.0,
+            "total_latency_ms": 1.423
           },
           {
             "layer": 2,
@@ -359,7 +405,10 @@
             "cumulative_accuracy": 0.9706,
             "cumulative_energy_mj": 16.27,
             "cumulative_time_ms": 1.483,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.6485527974031
           },
           {
             "layer": 3,
@@ -373,12 +422,16 @@
             "cumulative_accuracy": 0.9516,
             "cumulative_energy_mj": 16.295,
             "cumulative_time_ms": 1.517,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 110.68255279740309
           }
         ],
         "energy_savings_pct": -1.56,
         "communication_energy_mj": 0.11265394691617338,
-        "per_sample_mj_with_comm": 16.407653946916174
+        "per_sample_mj_with_comm": 16.407653946916174,
+        "average_latency_ms": 10.326252752988353
       },
       {
         "multiplier": 3.0,
@@ -398,7 +451,10 @@
             "cumulative_accuracy": 0.9766,
             "cumulative_energy_mj": 12.289,
             "cumulative_time_ms": 2.859,
-            "communication_energy_mj": 0.0
+            "communication_energy_mj": 0.0,
+            "upload_time_ms": 0.0,
+            "network_rtt_ms": 0.0,
+            "total_latency_ms": 2.859
           },
           {
             "layer": 2,
@@ -412,7 +468,10 @@
             "cumulative_accuracy": 0.9655,
             "cumulative_energy_mj": 12.327,
             "cumulative_time_ms": 2.835,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 112.00055279740309
           },
           {
             "layer": 3,
@@ -426,12 +485,16 @@
             "cumulative_accuracy": 0.9525,
             "cumulative_energy_mj": 12.149,
             "cumulative_time_ms": 2.844,
-            "communication_energy_mj": 1.3822570173763604
+            "communication_energy_mj": 1.3822570173763604,
+            "upload_time_ms": 9.165552797403093,
+            "network_rtt_ms": 100.0,
+            "total_latency_ms": 112.00955279740309
           }
         ],
         "energy_savings_pct": 24.28,
         "communication_energy_mj": 0.09122896314683979,
-        "per_sample_mj_with_comm": 12.24022896314684
+        "per_sample_mj_with_comm": 12.24022896314684,
+        "average_latency_ms": 10.062595384628604
       }
     ]
   },
@@ -460,5 +523,13 @@
       }
     },
     "note": "Layer 1 is on-device (no communication). Layer 2+ requires data transmission."
+  },
+  "latency_config": {
+    "enabled": true,
+    "rtt_ms": 100.0,
+    "one_way_latency_ms": 50.0,
+    "data_rate_mbps": 1.0474,
+    "upload_time_calculation": "data_size_bits / (data_rate_mbps * 1000)",
+    "note": "Layer 1 is on-device (no network latency). Layer 2+ includes compute + upload + RTT."
   }
 }

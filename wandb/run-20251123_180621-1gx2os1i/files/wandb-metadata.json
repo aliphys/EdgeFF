@@ -1,0 +1,34 @@
+{
+  "os": "Windows-11-10.0.26100-SP0",
+  "python": "CPython 3.13.5",
+  "startedAt": "2025-11-23T17:06:21.969600Z",
+  "args": [
+    "--epochs",
+    "1",
+    "--batch-size",
+    "32"
+  ],
+  "program": "C:\\Users\\user\\Documents\\GitHub\\EdgeFF\\exploratory\\pytorch-cnn-mnist\\pytorch-cnn-mnist.py",
+  "codePath": "exploratory\\pytorch-cnn-mnist\\pytorch-cnn-mnist.py",
+  "codePathLocal": "exploratory\\pytorch-cnn-mnist\\pytorch-cnn-mnist.py",
+  "git": {
+    "remote": "https://github.com/aliphys/EdgeFF.git",
+    "commit": "45a2dfc76c855e83d6128ea19147a61f1f1202b1"
+  },
+  "email": "ali.jahangiri@eit.lth.se",
+  "root": "C:\\Users\\user\\Documents\\GitHub\\EdgeFF",
+  "host": "DESKTOP-28JEA7S",
+  "executable": "C:\\Users\\user\\Documents\\GitHub\\EdgeFF\\.venv\\Scripts\\python.exe",
+  "cpu_count": 12,
+  "cpu_count_logical": 14,
+  "disk": {
+    "/": {
+      "total": "508625416192",
+      "used": "342120968192"
+    }
+  },
+  "memory": {
+    "total": "16597598208"
+  },
+  "writerId": "ds1qotu4c17704yki9pf7gza03m242ox"
+}

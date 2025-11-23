@@ -1,0 +1,65 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            ds1qotu4c17704yki9pf7gza03m242ox:
+                args:
+                    - --epochs
+                    - "1"
+                    - --batch-size
+                    - "32"
+                codePath: exploratory\pytorch-cnn-mnist\pytorch-cnn-mnist.py
+                codePathLocal: exploratory\pytorch-cnn-mnist\pytorch-cnn-mnist.py
+                cpu_count: 12
+                cpu_count_logical: 14
+                disk:
+                    /:
+                        total: "508625416192"
+                        used: "342120968192"
+                email: ali.jahangiri@eit.lth.se
+                executable: C:\Users\user\Documents\GitHub\EdgeFF\.venv\Scripts\python.exe
+                git:
+                    commit: 45a2dfc76c855e83d6128ea19147a61f1f1202b1
+                    remote: https://github.com/aliphys/EdgeFF.git
+                host: DESKTOP-28JEA7S
+                memory:
+                    total: "16597598208"
+                os: Windows-11-10.0.26100-SP0
+                program: C:\Users\user\Documents\GitHub\EdgeFF\exploratory\pytorch-cnn-mnist\pytorch-cnn-mnist.py
+                python: CPython 3.13.5
+                root: C:\Users\user\Documents\GitHub\EdgeFF
+                startedAt: "2025-11-23T17:06:21.969600Z"
+                writerId: ds1qotu4c17704yki9pf7gza03m242ox
+        m: []
+        python_version: 3.13.5
+        t:
+            "1":
+                - 1
+                - 41
+            "2":
+                - 1
+                - 41
+            "3":
+                - 1
+            "4": 3.13.5
+            "5": 0.23.0
+            "8":
+                - 3
+            "12": 0.23.0
+            "13": windows-amd64
+batch_size:
+    value: 32
+epochs:
+    value: 1
+log_interval:
+    value: 10
+lr:
+    value: 0.01
+momentum:
+    value: 0.5
+no_cuda:
+    value: false
+seed:
+    value: 1
+test_batch_size:
+    value: 1000

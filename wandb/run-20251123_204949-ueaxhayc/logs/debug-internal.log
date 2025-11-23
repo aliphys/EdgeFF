@@ -1,0 +1,12 @@
+{"time":"2025-11-23T20:49:49.805709564+01:00","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2025-11-23T20:49:50.259906847+01:00","level":"INFO","msg":"stream: created new stream","id":"ueaxhayc"}
+{"time":"2025-11-23T20:49:50.260111397+01:00","level":"INFO","msg":"handler: started","stream_id":"ueaxhayc"}
+{"time":"2025-11-23T20:49:50.260770904+01:00","level":"INFO","msg":"stream: started","id":"ueaxhayc"}
+{"time":"2025-11-23T20:49:50.260825465+01:00","level":"INFO","msg":"writer: started","stream_id":"ueaxhayc"}
+{"time":"2025-11-23T20:49:50.260879035+01:00","level":"INFO","msg":"sender: started","stream_id":"ueaxhayc"}
+{"time":"2025-11-23T21:01:21.112048918+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-11-23T21:01:21.418448231+01:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-11-23T21:01:21.433519694+01:00","level":"INFO","msg":"stream: closing","id":"ueaxhayc"}
+{"time":"2025-11-23T21:01:21.433654355+01:00","level":"INFO","msg":"handler: closed","stream_id":"ueaxhayc"}
+{"time":"2025-11-23T21:01:21.433890269+01:00","level":"INFO","msg":"sender: closed","stream_id":"ueaxhayc"}
+{"time":"2025-11-23T21:01:21.433915166+01:00","level":"INFO","msg":"stream: closed","id":"ueaxhayc"}

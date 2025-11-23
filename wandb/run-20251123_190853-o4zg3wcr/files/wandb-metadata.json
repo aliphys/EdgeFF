@@ -1,0 +1,37 @@
+{
+  "os": "Linux-5.15.148-tegra-aarch64-with-glibc2.35",
+  "python": "CPython 3.10.12",
+  "startedAt": "2025-11-23T18:08:53.113072Z",
+  "program": "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/Main.py",
+  "codePath": "exploratory/Refractoring/Main.py",
+  "codePathLocal": "exploratory/Refractoring/Main.py",
+  "git": {
+    "commit": "f853a2063f1efa7ff0da27b67d9acd669d238653"
+  },
+  "email": "ali.jahangiri@eit.lth.se",
+  "root": "/home/jetson/Documents/github/EdgeFF",
+  "host": "jetson-desktop",
+  "executable": "/bin/python",
+  "cpu_count": 6,
+  "cpu_count_logical": 6,
+  "gpu": "Orin (nvgpu)",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "124434268160",
+      "used": "113446678528"
+    }
+  },
+  "memory": {
+    "total": "7990079488"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "Orin (nvgpu)",
+      "architecture": "Ampere",
+      "uuid": "9b25f227-0772-5986-8a61-fb20f196f77b"
+    }
+  ],
+  "cudaVersion": "12.6",
+  "writerId": "dc2plv9jfzmj2nvankax0f2xn481abbl"
+}

@@ -1,0 +1,18 @@
+Train representation layers: 100%|██████████████████████████████████| 100/100 [10:36<00:00,  6.37s/it]
+Train softmax layers: 100%|█████████████████████████████████████████| 100/100 [42:24<00:00, 25.45s/it]
+Traceback (most recent call last):
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/Main.py", line 114, in <module>
+    model = Train.build_model(
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/Train.py", line 292, in build_model
+    os.makedirs(model_dir, exist_ok=True)
+  File "/usr/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+OSError: [Errno 28] No space left on device: '/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/model'
+Traceback (most recent call last):
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/Main.py", line 114, in <module>
+    model = Train.build_model(
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/Train.py", line 292, in build_model
+    os.makedirs(model_dir, exist_ok=True)
+  File "/usr/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+OSError: [Errno 28] No space left on device: '/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/model'

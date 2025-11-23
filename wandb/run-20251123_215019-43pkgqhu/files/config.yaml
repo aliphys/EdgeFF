@@ -1,0 +1,87 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            8mc9ibgr81zlrxcv1frxrannolacvc00:
+                args:
+                    - --layers
+                    - 784,100
+                codePath: exploratory/Refractoring/Main.py
+                codePathLocal: exploratory/Refractoring/Main.py
+                cpu_count: 6
+                cpu_count_logical: 6
+                cudaVersion: "12.6"
+                disk:
+                    /:
+                        total: "124434268160"
+                        used: "104010919936"
+                email: ali.jahangiri@eit.lth.se
+                executable: /bin/python
+                git:
+                    commit: f853a2063f1efa7ff0da27b67d9acd669d238653
+                gpu: Orin (nvgpu)
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      name: Orin (nvgpu)
+                      uuid: 9b25f227-0772-5986-8a61-fb20f196f77b
+                host: jetson-desktop
+                memory:
+                    total: "7990079488"
+                os: Linux-5.15.148-tegra-aarch64-with-glibc2.35
+                program: /home/jetson/Documents/github/EdgeFF/exploratory/Refractoring/Main.py
+                python: CPython 3.10.12
+                root: /home/jetson/Documents/github/EdgeFF
+                startedAt: "2025-11-23T20:50:19.485127Z"
+                writerId: 8mc9ibgr81zlrxcv1frxrannolacvc00
+        m: []
+        python_version: 3.10.12
+        t:
+            "1":
+                - 1
+                - 5
+                - 41
+                - 53
+            "2":
+                - 1
+                - 5
+                - 41
+                - 53
+            "3":
+                - 2
+                - 15
+                - 16
+            "4": 3.10.12
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": linux-aarch64
+dataset:
+    value: MNIST
+enable_hw_monitor:
+    value: true
+final_train_sample:
+    value: 5000
+final_val_sample:
+    value: 2000
+hw_interval_ms:
+    value: 1000
+layers:
+    value:
+        - 784
+        - 100
+log_val_samples:
+    value: 1000
+representation_epochs:
+    value: 3
+seed:
+    value: 0
+softmax_epochs:
+    value: 3
+test_batch_size:
+    value: 512
+train_batch_size:
+    value: 256
+train_flag:
+    value: true
+val_size:
+    value: 10000

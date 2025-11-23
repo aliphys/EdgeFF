@@ -1,0 +1,23 @@
+2025-11-23 19:08:54,365 INFO    MainThread:13150 [wandb_setup.py:_flush():80] Current SDK version is 0.23.0
+2025-11-23 19:08:54,366 INFO    MainThread:13150 [wandb_setup.py:_flush():80] Configure stats pid to 13150
+2025-11-23 19:08:54,366 INFO    MainThread:13150 [wandb_setup.py:_flush():80] Loading settings from /home/jetson/.config/wandb/settings
+2025-11-23 19:08:54,366 INFO    MainThread:13150 [wandb_setup.py:_flush():80] Loading settings from /home/jetson/Documents/github/EdgeFF/wandb/settings
+2025-11-23 19:08:54,366 INFO    MainThread:13150 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2025-11-23 19:08:54,366 INFO    MainThread:13150 [wandb_init.py:setup_run_log_directory():713] Logging user logs to /home/jetson/Documents/github/EdgeFF/wandb/run-20251123_190853-o4zg3wcr/logs/debug.log
+2025-11-23 19:08:54,367 INFO    MainThread:13150 [wandb_init.py:setup_run_log_directory():714] Logging internal logs to /home/jetson/Documents/github/EdgeFF/wandb/run-20251123_190853-o4zg3wcr/logs/debug-internal.log
+2025-11-23 19:08:54,367 INFO    MainThread:13150 [wandb_init.py:init():840] calling init triggers
+2025-11-23 19:08:54,367 INFO    MainThread:13150 [wandb_init.py:init():845] wandb.init called with sweep_config: {}
+config: {'layers': [784, 100, 100, 100], 'representation_batch_size': 5000, 'softmax_batch_size': 500, 'epochs': 100, 'dataset': 'MNIST', 'train_flag': True, '_wandb': {}}
+2025-11-23 19:08:54,367 INFO    MainThread:13150 [wandb_init.py:init():888] starting backend
+2025-11-23 19:08:54,630 INFO    MainThread:13150 [wandb_init.py:init():891] sending inform_init request
+2025-11-23 19:08:54,640 INFO    MainThread:13150 [wandb_init.py:init():899] backend started and connected
+2025-11-23 19:08:54,697 INFO    MainThread:13150 [wandb_init.py:init():969] updated telemetry
+2025-11-23 19:08:54,710 INFO    MainThread:13150 [wandb_init.py:init():993] communicating run to backend with 90.0 second timeout
+2025-11-23 19:08:55,295 INFO    MainThread:13150 [wandb_init.py:init():1040] starting run threads in backend
+2025-11-23 19:08:55,836 INFO    MainThread:13150 [wandb_run.py:_console_start():2504] atexit reg
+2025-11-23 19:08:55,837 INFO    MainThread:13150 [wandb_run.py:_redirect():2352] redirect: wrap_raw
+2025-11-23 19:08:55,837 INFO    MainThread:13150 [wandb_run.py:_redirect():2421] Wrapping output streams.
+2025-11-23 19:08:55,839 INFO    MainThread:13150 [wandb_run.py:_redirect():2444] Redirects installed.
+2025-11-23 19:08:55,845 INFO    MainThread:13150 [wandb_init.py:init():1080] run started, returning control to user process
+2025-11-23 20:02:43,650 INFO    wandb-AsyncioManager-main:13150 [service_client.py:_forward_responses():80] Reached EOF.
+2025-11-23 20:02:43,656 INFO    wandb-AsyncioManager-main:13150 [mailbox.py:close():137] Closing mailbox, abandoning 1 handles.

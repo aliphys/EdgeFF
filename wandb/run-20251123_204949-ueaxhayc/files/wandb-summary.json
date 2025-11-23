@@ -1,0 +1,1 @@
+{"phase":"softmax","sample_val_accuracy":0.92578125,"final/train_accuracy_sample":0.10239999741315842,"final/val_accuracy_sample":0.9315000176429749,"final/test_accuracy":0.9320999979972839,"_wandb":{"runtime":689},"_timestamp":1.763928080414868e+09,"_runtime":689,"_step":6,"epoch":2}

@@ -1,0 +1,1 @@
+{"final/val_accuracy_sample":0.9300000071525574,"final/test_accuracy":0.9261999726295471,"sample_val_accuracy":0.919921875,"final/train_accuracy_sample":0.10019999742507935,"_step":6,"epoch":2,"phase":"softmax","_runtime":395,"_wandb":{"runtime":395},"_timestamp":1.7639286970780127e+09}

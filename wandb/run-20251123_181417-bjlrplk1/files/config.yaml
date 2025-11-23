@@ -1,0 +1,69 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            7f7rvbkwrxe9grhft46mq4b3vprsvyt7:
+                args:
+                    - --epochs
+                    - "3"
+                    - --test-batch-size
+                    - "64"
+                codePath: exploratory/pytorch-cnn-mnist/pytorch-cnn-mnist.py
+                codePathLocal: exploratory/pytorch-cnn-mnist/pytorch-cnn-mnist.py
+                cpu_count: 6
+                cpu_count_logical: 6
+                cudaVersion: "12.6"
+                disk:
+                    /:
+                        total: "124434268160"
+                        used: "96038670336"
+                email: ali.jahangiri@eit.lth.se
+                executable: /bin/python
+                git:
+                    commit: e0ce3de70399572a63893b381d55a1a8c8897f9c
+                gpu: Orin (nvgpu)
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      name: Orin (nvgpu)
+                      uuid: 9b25f227-0772-5986-8a61-fb20f196f77b
+                host: jetson-desktop
+                memory:
+                    total: "7990079488"
+                os: Linux-5.15.148-tegra-aarch64-with-glibc2.35
+                program: /home/jetson/Documents/github/EdgeFF/exploratory/pytorch-cnn-mnist/pytorch-cnn-mnist.py
+                python: CPython 3.10.12
+                root: /home/jetson/Documents/github/EdgeFF
+                startedAt: "2025-11-23T17:14:17.176923Z"
+                writerId: 7f7rvbkwrxe9grhft46mq4b3vprsvyt7
+        m: []
+        python_version: 3.10.12
+        t:
+            "1":
+                - 1
+                - 41
+            "2":
+                - 1
+                - 41
+            "3":
+                - 1
+            "4": 3.10.12
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": linux-aarch64
+batch_size:
+    value: 64
+epochs:
+    value: 3
+log_interval:
+    value: 10
+lr:
+    value: 0.01
+momentum:
+    value: 0.5
+no_cuda:
+    value: false
+seed:
+    value: 1
+test_batch_size:
+    value: 64

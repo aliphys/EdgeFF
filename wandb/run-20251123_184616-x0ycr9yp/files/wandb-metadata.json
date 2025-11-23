@@ -1,0 +1,37 @@
+{
+  "os": "Linux-5.15.148-tegra-aarch64-with-glibc2.35",
+  "python": "CPython 3.10.12",
+  "startedAt": "2025-11-23T17:46:16.101615Z",
+  "program": "/home/jetson/Documents/github/EdgeFF/exploratory/pytorch-cnn-mnist/pytorch-cnn-mnist.py",
+  "codePath": "exploratory/pytorch-cnn-mnist/pytorch-cnn-mnist.py",
+  "codePathLocal": "exploratory/pytorch-cnn-mnist/pytorch-cnn-mnist.py",
+  "git": {
+    "commit": "e0ce3de70399572a63893b381d55a1a8c8897f9c"
+  },
+  "email": "ali.jahangiri@eit.lth.se",
+  "root": "/home/jetson/Documents/github/EdgeFF",
+  "host": "jetson-desktop",
+  "executable": "/bin/python",
+  "cpu_count": 6,
+  "cpu_count_logical": 6,
+  "gpu": "Orin (nvgpu)",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "124434268160",
+      "used": "106499117056"
+    }
+  },
+  "memory": {
+    "total": "7990079488"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "Orin (nvgpu)",
+      "architecture": "Ampere",
+      "uuid": "9b25f227-0772-5986-8a61-fb20f196f77b"
+    }
+  ],
+  "cudaVersion": "12.6",
+  "writerId": "fp1pv6u2o8zecy5js9sqbbb1yze4p5rb"
+}

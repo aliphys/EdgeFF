@@ -1,0 +1,110 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                W&B SWEEP QUICK REFERENCE CARD                            ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+📋 SWEEP CONFIGURATION
+─────────────────────────────────────────────────────────────────────────
+  Grid Search: 12 total runs (2 × 6 combinations)
+  
+  Parameters:
+    ✓ CUDA vs CPU: 2 options (--no-cuda: false, true)
+    ✓ Architectures: 6 networks (1-3 hidden layers, width 100 or 200)
+    ✓ Seed: Fixed at 42
+    ✓ Epochs: 3 rep + 3 softmax
+    ✓ Batch size: 256
+
+🚀 QUICK START
+─────────────────────────────────────────────────────────────────────────
+  1. Test configuration:
+     $ python test_sweep_config.py
+
+  2. Create and run sweep:
+     $ python run_sweep.py --run-agent
+
+  3. Or run manually:
+     $ python run_sweep.py
+     $ wandb agent <sweep-id>
+
+⚡ PARALLEL EXECUTION
+─────────────────────────────────────────────────────────────────────────
+  Run multiple agents simultaneously to speed up the sweep:
+  
+  Terminal 1: $ wandb agent <sweep-id>
+  Terminal 2: $ wandb agent <sweep-id>
+  Terminal 3: $ wandb agent <sweep-id>
+
+🎯 SINGLE RUN TEST
+─────────────────────────────────────────────────────────────────────────
+  Before running full sweep, test individual configurations:
+  
+  # CPU, 1 hidden layer (100 width)
+  $ python Main.py --layers "784,100,10" --seed 42 --no-cuda
+  
+  # GPU, 3 hidden layers (200 width)
+  $ python Main.py --layers "784,200,200,200,10" --seed 42
+
+📊 ARCHITECTURES BEING TESTED
+─────────────────────────────────────────────────────────────────────────
+  Width 100:
+    • 784,100,10           (1 hidden layer)
+    • 784,100,100,10       (2 hidden layers)
+    • 784,100,100,100,10   (3 hidden layers)
+  
+  Width 200:
+    • 784,200,10           (1 hidden layer)
+    • 784,200,200,10       (2 hidden layers)
+    • 784,200,200,200,10   (3 hidden layers)
+
+📈 METRICS TRACKED
+─────────────────────────────────────────────────────────────────────────
+  Primary: final/test_accuracy (optimization target)
+  
+  Also logged:
+    • Training progress (sample_val_accuracy per epoch)
+    • final/train_accuracy_sample
+    • final/val_accuracy_sample
+    • Hardware metrics (power, GPU utilization if available)
+    • Device info (CPU vs CUDA)
+
+🔧 CUSTOMIZATION
+─────────────────────────────────────────────────────────────────────────
+  Edit sweep_config.yaml to modify:
+    - Add more layer configurations
+    - Change epochs, batch size
+    - Add multiple seeds for statistical significance
+    - Switch method: grid → random → bayes
+
+📁 FILES CREATED
+─────────────────────────────────────────────────────────────────────────
+  ✓ sweep_config.yaml      - Sweep parameters
+  ✓ run_sweep.py          - Sweep launcher
+  ✓ test_sweep_config.py  - Configuration validator
+  ✓ SWEEP_README.md       - Full documentation
+  ✓ Main.py               - Modified to support sweeps
+
+🔍 VIEW RESULTS
+─────────────────────────────────────────────────────────────────────────
+  https://wandb.ai/<your-username>/edgeff/sweeps/<sweep-id>
+
+💡 TIPS
+─────────────────────────────────────────────────────────────────────────
+  • Run test_sweep_config.py first to validate setup
+  • Use --count N to limit number of runs during testing
+  • Multiple agents can run in parallel on different machines
+  • Each run logs source code for reproducibility
+  • Models are saved to ./model/ directory
+
+⚠️  TROUBLESHOOTING
+─────────────────────────────────────────────────────────────────────────
+  Issue: OOM on GPU
+  Fix: Reduce train-batch-size in sweep_config.yaml
+  
+  Issue: wandb authentication error
+  Fix: $ wandb login
+  
+  Issue: Slow sweep execution
+  Fix: Run multiple agents in parallel
+
+═══════════════════════════════════════════════════════════════════════════
+For detailed documentation, see: SWEEP_README.md
+═══════════════════════════════════════════════════════════════════════════

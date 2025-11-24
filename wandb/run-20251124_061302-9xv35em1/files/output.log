@@ -1,0 +1,257 @@
+Running as part of sweep: i2siez2w
+Sweep override - layers: [784, 200, 10]
+Sweep override - softmax_epochs: 10
+Sweep override - train_batch_size: 512
+Sweep override - seed: 42
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'layers' was locked by 'sweep' (ignored update).
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'seed' was locked by 'sweep' (ignored update).
+Found INA3221 power monitor at: /sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon1
+Started tegrastats monitoring
+Hardware monitoring enabled.
+Rep Epoch: 1/10 [512/50000 (1%)]
+Rep Epoch: 1/10 [5632/50000 (11%)]
+Rep Epoch: 1/10 [10752/50000 (22%)]
+Rep Epoch: 1/10 [15872/50000 (32%)]
+Rep Epoch: 1/10 [20992/50000 (42%)]
+Rep Epoch: 1/10 [26112/50000 (52%)]
+Rep Epoch: 1/10 [31232/50000 (62%)]
+Rep Epoch: 1/10 [36352/50000 (73%)]
+Rep Epoch: 1/10 [41472/50000 (83%)]
+Rep Epoch: 1/10 [46592/50000 (93%)]
+Rep Epoch: 2/10 [512/50000 (1%)]
+Rep Epoch: 2/10 [5632/50000 (11%)]
+Rep Epoch: 2/10 [10752/50000 (22%)]
+Rep Epoch: 2/10 [15872/50000 (32%)]
+Rep Epoch: 2/10 [20992/50000 (42%)]
+Rep Epoch: 2/10 [26112/50000 (52%)]
+Rep Epoch: 2/10 [31232/50000 (62%)]
+Rep Epoch: 2/10 [36352/50000 (73%)]
+Rep Epoch: 2/10 [41472/50000 (83%)]
+Rep Epoch: 2/10 [46592/50000 (93%)]
+Rep Epoch: 3/10 [512/50000 (1%)]
+Rep Epoch: 3/10 [5632/50000 (11%)]
+Rep Epoch: 3/10 [10752/50000 (22%)]
+Rep Epoch: 3/10 [15872/50000 (32%)]
+Rep Epoch: 3/10 [20992/50000 (42%)]
+Rep Epoch: 3/10 [26112/50000 (52%)]
+Rep Epoch: 3/10 [31232/50000 (62%)]
+Rep Epoch: 3/10 [36352/50000 (73%)]
+Rep Epoch: 3/10 [41472/50000 (83%)]
+Rep Epoch: 3/10 [46592/50000 (93%)]
+Rep Epoch: 4/10 [512/50000 (1%)]
+Rep Epoch: 4/10 [5632/50000 (11%)]
+Rep Epoch: 4/10 [10752/50000 (22%)]
+Rep Epoch: 4/10 [15872/50000 (32%)]
+Rep Epoch: 4/10 [20992/50000 (42%)]
+Rep Epoch: 4/10 [26112/50000 (52%)]
+Rep Epoch: 4/10 [31232/50000 (62%)]
+Rep Epoch: 4/10 [36352/50000 (73%)]
+Rep Epoch: 4/10 [41472/50000 (83%)]
+Rep Epoch: 4/10 [46592/50000 (93%)]
+Rep Epoch: 5/10 [512/50000 (1%)]
+Rep Epoch: 5/10 [5632/50000 (11%)]
+Rep Epoch: 5/10 [10752/50000 (22%)]
+Rep Epoch: 5/10 [15872/50000 (32%)]
+Rep Epoch: 5/10 [20992/50000 (42%)]
+Rep Epoch: 5/10 [26112/50000 (52%)]
+Rep Epoch: 5/10 [31232/50000 (62%)]
+Rep Epoch: 5/10 [36352/50000 (73%)]
+Rep Epoch: 5/10 [41472/50000 (83%)]
+Rep Epoch: 5/10 [46592/50000 (93%)]
+Rep Epoch: 6/10 [512/50000 (1%)]
+Rep Epoch: 6/10 [5632/50000 (11%)]
+Rep Epoch: 6/10 [10752/50000 (22%)]
+Rep Epoch: 6/10 [15872/50000 (32%)]
+Rep Epoch: 6/10 [20992/50000 (42%)]
+Rep Epoch: 6/10 [26112/50000 (52%)]
+Rep Epoch: 6/10 [31232/50000 (62%)]
+Rep Epoch: 6/10 [36352/50000 (73%)]
+Rep Epoch: 6/10 [41472/50000 (83%)]
+Rep Epoch: 6/10 [46592/50000 (93%)]
+Rep Epoch: 7/10 [512/50000 (1%)]
+Rep Epoch: 7/10 [5632/50000 (11%)]
+Rep Epoch: 7/10 [10752/50000 (22%)]
+Rep Epoch: 7/10 [15872/50000 (32%)]
+Rep Epoch: 7/10 [20992/50000 (42%)]
+Rep Epoch: 7/10 [26112/50000 (52%)]
+Rep Epoch: 7/10 [31232/50000 (62%)]
+Rep Epoch: 7/10 [36352/50000 (73%)]
+Rep Epoch: 7/10 [41472/50000 (83%)]
+Rep Epoch: 7/10 [46592/50000 (93%)]
+Rep Epoch: 8/10 [512/50000 (1%)]
+Rep Epoch: 8/10 [5632/50000 (11%)]
+Rep Epoch: 8/10 [10752/50000 (22%)]
+Rep Epoch: 8/10 [15872/50000 (32%)]
+Rep Epoch: 8/10 [20992/50000 (42%)]
+Rep Epoch: 8/10 [26112/50000 (52%)]
+Rep Epoch: 8/10 [31232/50000 (62%)]
+Rep Epoch: 8/10 [36352/50000 (73%)]
+Rep Epoch: 8/10 [41472/50000 (83%)]
+Rep Epoch: 8/10 [46592/50000 (93%)]
+Rep Epoch: 9/10 [512/50000 (1%)]
+Rep Epoch: 9/10 [5632/50000 (11%)]
+Rep Epoch: 9/10 [10752/50000 (22%)]
+Rep Epoch: 9/10 [15872/50000 (32%)]
+Rep Epoch: 9/10 [20992/50000 (42%)]
+Rep Epoch: 9/10 [26112/50000 (52%)]
+Rep Epoch: 9/10 [31232/50000 (62%)]
+Rep Epoch: 9/10 [36352/50000 (73%)]
+Rep Epoch: 9/10 [41472/50000 (83%)]
+Rep Epoch: 9/10 [46592/50000 (93%)]
+Rep Epoch: 10/10 [512/50000 (1%)]
+Rep Epoch: 10/10 [5632/50000 (11%)]
+Rep Epoch: 10/10 [10752/50000 (22%)]
+Rep Epoch: 10/10 [15872/50000 (32%)]
+Rep Epoch: 10/10 [20992/50000 (42%)]
+Rep Epoch: 10/10 [26112/50000 (52%)]
+Rep Epoch: 10/10 [31232/50000 (62%)]
+Rep Epoch: 10/10 [36352/50000 (73%)]
+Rep Epoch: 10/10 [41472/50000 (83%)]
+Rep Epoch: 10/10 [46592/50000 (93%)]
+Softmax Epoch: 1/10 [512/50000 (1%)]
+Softmax Epoch: 1/10 [5632/50000 (11%)]
+Softmax Epoch: 1/10 [10752/50000 (22%)]
+Softmax Epoch: 1/10 [15872/50000 (32%)]
+Softmax Epoch: 1/10 [20992/50000 (42%)]
+Softmax Epoch: 1/10 [26112/50000 (52%)]
+Softmax Epoch: 1/10 [31232/50000 (62%)]
+Softmax Epoch: 1/10 [36352/50000 (73%)]
+Softmax Epoch: 1/10 [41472/50000 (83%)]
+Softmax Epoch: 1/10 [46592/50000 (93%)]
+Softmax Epoch: 2/10 [512/50000 (1%)]
+Softmax Epoch: 2/10 [5632/50000 (11%)]
+Softmax Epoch: 2/10 [10752/50000 (22%)]
+Softmax Epoch: 2/10 [15872/50000 (32%)]
+Softmax Epoch: 2/10 [20992/50000 (42%)]
+Softmax Epoch: 2/10 [26112/50000 (52%)]
+Softmax Epoch: 2/10 [31232/50000 (62%)]
+Softmax Epoch: 2/10 [36352/50000 (73%)]
+Softmax Epoch: 2/10 [41472/50000 (83%)]
+Softmax Epoch: 2/10 [46592/50000 (93%)]
+Softmax Epoch: 3/10 [512/50000 (1%)]
+Softmax Epoch: 3/10 [5632/50000 (11%)]
+Softmax Epoch: 3/10 [10752/50000 (22%)]
+Softmax Epoch: 3/10 [15872/50000 (32%)]
+Softmax Epoch: 3/10 [20992/50000 (42%)]
+Softmax Epoch: 3/10 [26112/50000 (52%)]
+Softmax Epoch: 3/10 [31232/50000 (62%)]
+Softmax Epoch: 3/10 [36352/50000 (73%)]
+Softmax Epoch: 3/10 [41472/50000 (83%)]
+Softmax Epoch: 3/10 [46592/50000 (93%)]
+Softmax Epoch: 4/10 [512/50000 (1%)]
+Softmax Epoch: 4/10 [5632/50000 (11%)]
+Softmax Epoch: 4/10 [10752/50000 (22%)]
+Softmax Epoch: 4/10 [15872/50000 (32%)]
+Softmax Epoch: 4/10 [20992/50000 (42%)]
+Softmax Epoch: 4/10 [26112/50000 (52%)]
+Softmax Epoch: 4/10 [31232/50000 (62%)]
+Softmax Epoch: 4/10 [36352/50000 (73%)]
+Softmax Epoch: 4/10 [41472/50000 (83%)]
+Softmax Epoch: 4/10 [46592/50000 (93%)]
+Softmax Epoch: 5/10 [512/50000 (1%)]
+Softmax Epoch: 5/10 [5632/50000 (11%)]
+Softmax Epoch: 5/10 [10752/50000 (22%)]
+Softmax Epoch: 5/10 [15872/50000 (32%)]
+Softmax Epoch: 5/10 [20992/50000 (42%)]
+Softmax Epoch: 5/10 [26112/50000 (52%)]
+Softmax Epoch: 5/10 [31232/50000 (62%)]
+Softmax Epoch: 5/10 [36352/50000 (73%)]
+Softmax Epoch: 5/10 [41472/50000 (83%)]
+Softmax Epoch: 5/10 [46592/50000 (93%)]
+Softmax Epoch: 6/10 [512/50000 (1%)]
+Softmax Epoch: 6/10 [5632/50000 (11%)]
+Softmax Epoch: 6/10 [10752/50000 (22%)]
+Softmax Epoch: 6/10 [15872/50000 (32%)]
+Softmax Epoch: 6/10 [20992/50000 (42%)]
+Softmax Epoch: 6/10 [26112/50000 (52%)]
+Softmax Epoch: 6/10 [31232/50000 (62%)]
+Softmax Epoch: 6/10 [36352/50000 (73%)]
+Softmax Epoch: 6/10 [41472/50000 (83%)]
+Softmax Epoch: 6/10 [46592/50000 (93%)]
+Softmax Epoch: 7/10 [512/50000 (1%)]
+Softmax Epoch: 7/10 [5632/50000 (11%)]
+Softmax Epoch: 7/10 [10752/50000 (22%)]
+Softmax Epoch: 7/10 [15872/50000 (32%)]
+Softmax Epoch: 7/10 [20992/50000 (42%)]
+Softmax Epoch: 7/10 [26112/50000 (52%)]
+Softmax Epoch: 7/10 [31232/50000 (62%)]
+Softmax Epoch: 7/10 [36352/50000 (73%)]
+Softmax Epoch: 7/10 [41472/50000 (83%)]
+Softmax Epoch: 7/10 [46592/50000 (93%)]
+Softmax Epoch: 8/10 [512/50000 (1%)]
+Softmax Epoch: 8/10 [5632/50000 (11%)]
+Softmax Epoch: 8/10 [10752/50000 (22%)]
+Softmax Epoch: 8/10 [15872/50000 (32%)]
+Softmax Epoch: 8/10 [20992/50000 (42%)]
+Softmax Epoch: 8/10 [26112/50000 (52%)]
+Softmax Epoch: 8/10 [31232/50000 (62%)]
+Softmax Epoch: 8/10 [36352/50000 (73%)]
+Softmax Epoch: 8/10 [41472/50000 (83%)]
+Softmax Epoch: 8/10 [46592/50000 (93%)]
+Softmax Epoch: 9/10 [512/50000 (1%)]
+Softmax Epoch: 9/10 [5632/50000 (11%)]
+Softmax Epoch: 9/10 [10752/50000 (22%)]
+Softmax Epoch: 9/10 [15872/50000 (32%)]
+Softmax Epoch: 9/10 [20992/50000 (42%)]
+Softmax Epoch: 9/10 [26112/50000 (52%)]
+Softmax Epoch: 9/10 [31232/50000 (62%)]
+Softmax Epoch: 9/10 [36352/50000 (73%)]
+Softmax Epoch: 9/10 [41472/50000 (83%)]
+Softmax Epoch: 9/10 [46592/50000 (93%)]
+Softmax Epoch: 10/10 [512/50000 (1%)]
+Softmax Epoch: 10/10 [5632/50000 (11%)]
+Softmax Epoch: 10/10 [10752/50000 (22%)]
+Softmax Epoch: 10/10 [15872/50000 (32%)]
+Softmax Epoch: 10/10 [20992/50000 (42%)]
+Softmax Epoch: 10/10 [26112/50000 (52%)]
+Softmax Epoch: 10/10 [31232/50000 (62%)]
+Softmax Epoch: 10/10 [36352/50000 (73%)]
+Softmax Epoch: 10/10 [41472/50000 (83%)]
+Softmax Epoch: 10/10 [46592/50000 (93%)]
+
+Results for the TRAIN set:
+	F1-score: 0.09984294872851103
+	Accuracy: 0.10006
+	Error: 0.8999399989843369
+
+Inference Metrics for TRAIN set:
+	Latency per sample: 0.0126 ms
+	Energy per sample: 0.0899 mJ
+	Average power: 7209.86 mW
+
+Results for the TEST set:
+	F1-score: 0.9502241157547076
+	Accuracy: 0.9506
+	Error: 0.0493999719619751
+
+Inference Metrics for TEST set:
+	Latency per sample: 0.0069 ms
+	Energy per sample: 0.0461 mJ
+	Average power: 6655.49 mW
+
+Results for the VALIDATION set:
+	F1-score: 0.9439036675627859
+	Accuracy: 0.9445
+	Error: 0.05549997091293335
+
+Inference Metrics for VALIDATION set:
+	Latency per sample: 0.0055 ms
+	Energy per sample: 0.0368 mJ
+	Average power: 6655.49 mW
+Averaged mean:  7.367293765463584
+Averaged std:  2.0857788702878244
+Averaged mean_all_incorrect_labels:  -6.231910590685858
+Averaged std_all_incorrect_labels:  3.1964375639601266
+Averaged mean:  7.833050261955512
+Averaged std:  2.1792298157431924
+Averaged mean_all_incorrect_labels:  -6.368436409859405
+Averaged std_all_incorrect_labels:  3.1984135787872208
+100%|████████████████████████████████████████████████████████████████████| 10000/10000 [00:11<00:00, 896.21it/s]
+
+Results for the [1mVALIDATION[0m set based on light inference:
+	F1-score:  0.9505215562391186
+	Accuracy:  0.9509
+	Error: 0.04909998178482056
+mean number of layers used:  1.2478
+percentage for layers_up_to  [1. 2.]  :  [0.7522 0.2478]
+Stopped tegrastats monitoring

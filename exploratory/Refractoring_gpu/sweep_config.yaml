@@ -1,0 +1,25 @@
+program: exploratory/Refractoring_gpu/Main.py
+command:
+  - ${env}
+  - python
+  - ${program}
+  - --no-cuda
+  - ${args}
+method: grid
+metric:
+  name: final/test_accuracy
+  goal: maximize
+parameters:
+  layers:
+    values:
+      - "784,200,200,200,200,10"   # 4 hidden layers, width 200
+      - "784,400,400,400,10"   # 3 hidden layers, width 400
+      - "784,400,400,400,400,10"   # 4 hidden layers, width 400
+  seed:
+    value: 42
+  rep-epochs:
+    value: 10
+  softmax-epochs:
+    value: 10
+  train-batch-size:
+    value: 512

@@ -1,0 +1,269 @@
+Running as part of sweep: mjf06338
+Sweep override - layers: [784, 400, 10]
+Sweep override - softmax_epochs: 10
+Sweep override - train_batch_size: 512
+Sweep override - seed: 42
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'layers' was locked by 'sweep' (ignored update).
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'seed' was locked by 'sweep' (ignored update).
+Found INA3221 power monitor at: /sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon1
+Started tegrastats monitoring
+Hardware monitoring enabled.
+Rep Epoch: 1/10 [512/50000 (1%)]
+Rep Epoch: 1/10 [5632/50000 (11%)]
+Rep Epoch: 1/10 [10752/50000 (22%)]
+Rep Epoch: 1/10 [15872/50000 (32%)]
+Rep Epoch: 1/10 [20992/50000 (42%)]
+Rep Epoch: 1/10 [26112/50000 (52%)]
+Rep Epoch: 1/10 [31232/50000 (62%)]
+Rep Epoch: 1/10 [36352/50000 (73%)]
+Rep Epoch: 1/10 [41472/50000 (83%)]
+Rep Epoch: 1/10 [46592/50000 (93%)]
+Rep Epoch: 2/10 [512/50000 (1%)]
+Rep Epoch: 2/10 [5632/50000 (11%)]
+Rep Epoch: 2/10 [10752/50000 (22%)]
+Rep Epoch: 2/10 [15872/50000 (32%)]
+Rep Epoch: 2/10 [20992/50000 (42%)]
+Rep Epoch: 2/10 [26112/50000 (52%)]
+Rep Epoch: 2/10 [31232/50000 (62%)]
+Rep Epoch: 2/10 [36352/50000 (73%)]
+Rep Epoch: 2/10 [41472/50000 (83%)]
+Rep Epoch: 2/10 [46592/50000 (93%)]
+Rep Epoch: 3/10 [512/50000 (1%)]
+Rep Epoch: 3/10 [5632/50000 (11%)]
+Rep Epoch: 3/10 [10752/50000 (22%)]
+Rep Epoch: 3/10 [15872/50000 (32%)]
+Rep Epoch: 3/10 [20992/50000 (42%)]
+Rep Epoch: 3/10 [26112/50000 (52%)]
+Rep Epoch: 3/10 [31232/50000 (62%)]
+Rep Epoch: 3/10 [36352/50000 (73%)]
+Rep Epoch: 3/10 [41472/50000 (83%)]
+Rep Epoch: 3/10 [46592/50000 (93%)]
+Rep Epoch: 4/10 [512/50000 (1%)]
+Rep Epoch: 4/10 [5632/50000 (11%)]
+Rep Epoch: 4/10 [10752/50000 (22%)]
+Rep Epoch: 4/10 [15872/50000 (32%)]
+Rep Epoch: 4/10 [20992/50000 (42%)]
+Rep Epoch: 4/10 [26112/50000 (52%)]
+Rep Epoch: 4/10 [31232/50000 (62%)]
+Rep Epoch: 4/10 [36352/50000 (73%)]
+Rep Epoch: 4/10 [41472/50000 (83%)]
+Rep Epoch: 4/10 [46592/50000 (93%)]
+Rep Epoch: 5/10 [512/50000 (1%)]
+Rep Epoch: 5/10 [5632/50000 (11%)]
+Rep Epoch: 5/10 [10752/50000 (22%)]
+Rep Epoch: 5/10 [15872/50000 (32%)]
+Rep Epoch: 5/10 [20992/50000 (42%)]
+Rep Epoch: 5/10 [26112/50000 (52%)]
+Rep Epoch: 5/10 [31232/50000 (62%)]
+Rep Epoch: 5/10 [36352/50000 (73%)]
+Rep Epoch: 5/10 [41472/50000 (83%)]
+Rep Epoch: 5/10 [46592/50000 (93%)]
+Rep Epoch: 6/10 [512/50000 (1%)]
+Rep Epoch: 6/10 [5632/50000 (11%)]
+Rep Epoch: 6/10 [10752/50000 (22%)]
+Rep Epoch: 6/10 [15872/50000 (32%)]
+Rep Epoch: 6/10 [20992/50000 (42%)]
+Rep Epoch: 6/10 [26112/50000 (52%)]
+Rep Epoch: 6/10 [31232/50000 (62%)]
+Rep Epoch: 6/10 [36352/50000 (73%)]
+Rep Epoch: 6/10 [41472/50000 (83%)]
+Rep Epoch: 6/10 [46592/50000 (93%)]
+Rep Epoch: 7/10 [512/50000 (1%)]
+Rep Epoch: 7/10 [5632/50000 (11%)]
+Rep Epoch: 7/10 [10752/50000 (22%)]
+Rep Epoch: 7/10 [15872/50000 (32%)]
+Rep Epoch: 7/10 [20992/50000 (42%)]
+Rep Epoch: 7/10 [26112/50000 (52%)]
+Rep Epoch: 7/10 [31232/50000 (62%)]
+Rep Epoch: 7/10 [36352/50000 (73%)]
+Rep Epoch: 7/10 [41472/50000 (83%)]
+Rep Epoch: 7/10 [46592/50000 (93%)]
+Rep Epoch: 8/10 [512/50000 (1%)]
+Rep Epoch: 8/10 [5632/50000 (11%)]
+Rep Epoch: 8/10 [10752/50000 (22%)]
+Rep Epoch: 8/10 [15872/50000 (32%)]
+Rep Epoch: 8/10 [20992/50000 (42%)]
+Rep Epoch: 8/10 [26112/50000 (52%)]
+Rep Epoch: 8/10 [31232/50000 (62%)]
+Rep Epoch: 8/10 [36352/50000 (73%)]
+Rep Epoch: 8/10 [41472/50000 (83%)]
+Rep Epoch: 8/10 [46592/50000 (93%)]
+Rep Epoch: 9/10 [512/50000 (1%)]
+Rep Epoch: 9/10 [5632/50000 (11%)]
+Rep Epoch: 9/10 [10752/50000 (22%)]
+Rep Epoch: 9/10 [15872/50000 (32%)]
+Rep Epoch: 9/10 [20992/50000 (42%)]
+Rep Epoch: 9/10 [26112/50000 (52%)]
+Rep Epoch: 9/10 [31232/50000 (62%)]
+Rep Epoch: 9/10 [36352/50000 (73%)]
+Rep Epoch: 9/10 [41472/50000 (83%)]
+Rep Epoch: 9/10 [46592/50000 (93%)]
+Rep Epoch: 10/10 [512/50000 (1%)]
+Rep Epoch: 10/10 [5632/50000 (11%)]
+Rep Epoch: 10/10 [10752/50000 (22%)]
+Rep Epoch: 10/10 [15872/50000 (32%)]
+Rep Epoch: 10/10 [20992/50000 (42%)]
+Rep Epoch: 10/10 [26112/50000 (52%)]
+Rep Epoch: 10/10 [31232/50000 (62%)]
+Rep Epoch: 10/10 [36352/50000 (73%)]
+Rep Epoch: 10/10 [41472/50000 (83%)]
+Rep Epoch: 10/10 [46592/50000 (93%)]
+Softmax Epoch: 1/10 [512/50000 (1%)]
+Softmax Epoch: 1/10 [5632/50000 (11%)]
+Softmax Epoch: 1/10 [10752/50000 (22%)]
+Softmax Epoch: 1/10 [15872/50000 (32%)]
+Softmax Epoch: 1/10 [20992/50000 (42%)]
+Softmax Epoch: 1/10 [26112/50000 (52%)]
+Softmax Epoch: 1/10 [31232/50000 (62%)]
+Softmax Epoch: 1/10 [36352/50000 (73%)]
+Softmax Epoch: 1/10 [41472/50000 (83%)]
+Softmax Epoch: 1/10 [46592/50000 (93%)]
+Softmax Epoch: 2/10 [512/50000 (1%)]
+Softmax Epoch: 2/10 [5632/50000 (11%)]
+Softmax Epoch: 2/10 [10752/50000 (22%)]
+Softmax Epoch: 2/10 [15872/50000 (32%)]
+Softmax Epoch: 2/10 [20992/50000 (42%)]
+Softmax Epoch: 2/10 [26112/50000 (52%)]
+Softmax Epoch: 2/10 [31232/50000 (62%)]
+Softmax Epoch: 2/10 [36352/50000 (73%)]
+Softmax Epoch: 2/10 [41472/50000 (83%)]
+Softmax Epoch: 2/10 [46592/50000 (93%)]
+Softmax Epoch: 3/10 [512/50000 (1%)]
+Softmax Epoch: 3/10 [5632/50000 (11%)]
+Softmax Epoch: 3/10 [10752/50000 (22%)]
+Softmax Epoch: 3/10 [15872/50000 (32%)]
+Softmax Epoch: 3/10 [20992/50000 (42%)]
+Softmax Epoch: 3/10 [26112/50000 (52%)]
+Softmax Epoch: 3/10 [31232/50000 (62%)]
+Softmax Epoch: 3/10 [36352/50000 (73%)]
+Softmax Epoch: 3/10 [41472/50000 (83%)]
+Softmax Epoch: 3/10 [46592/50000 (93%)]
+Softmax Epoch: 4/10 [512/50000 (1%)]
+Softmax Epoch: 4/10 [5632/50000 (11%)]
+Softmax Epoch: 4/10 [10752/50000 (22%)]
+Softmax Epoch: 4/10 [15872/50000 (32%)]
+Softmax Epoch: 4/10 [20992/50000 (42%)]
+Softmax Epoch: 4/10 [26112/50000 (52%)]
+Softmax Epoch: 4/10 [31232/50000 (62%)]
+Softmax Epoch: 4/10 [36352/50000 (73%)]
+Softmax Epoch: 4/10 [41472/50000 (83%)]
+Softmax Epoch: 4/10 [46592/50000 (93%)]
+Softmax Epoch: 5/10 [512/50000 (1%)]
+Softmax Epoch: 5/10 [5632/50000 (11%)]
+Softmax Epoch: 5/10 [10752/50000 (22%)]
+Softmax Epoch: 5/10 [15872/50000 (32%)]
+Softmax Epoch: 5/10 [20992/50000 (42%)]
+Softmax Epoch: 5/10 [26112/50000 (52%)]
+Softmax Epoch: 5/10 [31232/50000 (62%)]
+Softmax Epoch: 5/10 [36352/50000 (73%)]
+Softmax Epoch: 5/10 [41472/50000 (83%)]
+Softmax Epoch: 5/10 [46592/50000 (93%)]
+Softmax Epoch: 6/10 [512/50000 (1%)]
+Softmax Epoch: 6/10 [5632/50000 (11%)]
+Softmax Epoch: 6/10 [10752/50000 (22%)]
+Softmax Epoch: 6/10 [15872/50000 (32%)]
+Softmax Epoch: 6/10 [20992/50000 (42%)]
+Softmax Epoch: 6/10 [26112/50000 (52%)]
+Softmax Epoch: 6/10 [31232/50000 (62%)]
+Softmax Epoch: 6/10 [36352/50000 (73%)]
+Softmax Epoch: 6/10 [41472/50000 (83%)]
+Softmax Epoch: 6/10 [46592/50000 (93%)]
+Softmax Epoch: 7/10 [512/50000 (1%)]
+Softmax Epoch: 7/10 [5632/50000 (11%)]
+Softmax Epoch: 7/10 [10752/50000 (22%)]
+Softmax Epoch: 7/10 [15872/50000 (32%)]
+Softmax Epoch: 7/10 [20992/50000 (42%)]
+Softmax Epoch: 7/10 [26112/50000 (52%)]
+Softmax Epoch: 7/10 [31232/50000 (62%)]
+Softmax Epoch: 7/10 [36352/50000 (73%)]
+Softmax Epoch: 7/10 [41472/50000 (83%)]
+Softmax Epoch: 7/10 [46592/50000 (93%)]
+Softmax Epoch: 8/10 [512/50000 (1%)]
+Softmax Epoch: 8/10 [5632/50000 (11%)]
+Softmax Epoch: 8/10 [10752/50000 (22%)]
+Softmax Epoch: 8/10 [15872/50000 (32%)]
+Softmax Epoch: 8/10 [20992/50000 (42%)]
+Softmax Epoch: 8/10 [26112/50000 (52%)]
+Softmax Epoch: 8/10 [31232/50000 (62%)]
+Softmax Epoch: 8/10 [36352/50000 (73%)]
+Softmax Epoch: 8/10 [41472/50000 (83%)]
+Softmax Epoch: 8/10 [46592/50000 (93%)]
+Softmax Epoch: 9/10 [512/50000 (1%)]
+Softmax Epoch: 9/10 [5632/50000 (11%)]
+Softmax Epoch: 9/10 [10752/50000 (22%)]
+Softmax Epoch: 9/10 [15872/50000 (32%)]
+Softmax Epoch: 9/10 [20992/50000 (42%)]
+Softmax Epoch: 9/10 [26112/50000 (52%)]
+Softmax Epoch: 9/10 [31232/50000 (62%)]
+Softmax Epoch: 9/10 [36352/50000 (73%)]
+Softmax Epoch: 9/10 [41472/50000 (83%)]
+Softmax Epoch: 9/10 [46592/50000 (93%)]
+Softmax Epoch: 10/10 [512/50000 (1%)]
+Softmax Epoch: 10/10 [5632/50000 (11%)]
+Softmax Epoch: 10/10 [10752/50000 (22%)]
+Softmax Epoch: 10/10 [15872/50000 (32%)]
+Softmax Epoch: 10/10 [20992/50000 (42%)]
+Softmax Epoch: 10/10 [26112/50000 (52%)]
+Softmax Epoch: 10/10 [31232/50000 (62%)]
+Softmax Epoch: 10/10 [36352/50000 (73%)]
+Softmax Epoch: 10/10 [41472/50000 (83%)]
+Softmax Epoch: 10/10 [46592/50000 (93%)]
+
+Results for the TRAIN set:
+	F1-score: 0.10061064720188387
+	Accuracy: 0.10098
+	Error: 0.8990200012922287
+
+Inference Metrics for TRAIN set:
+	Latency per sample: 0.0012 ms
+	Energy per sample: 0.0079 mJ
+	Average power: 6615.87 mW
+
+Results for the TEST set:
+	F1-score: 0.9505025386858973
+	Accuracy: 0.9511
+	Error: 0.04890000820159912
+
+Inference Metrics for TEST set:
+	Latency per sample: 0.0012 ms
+	Energy per sample: 0.0078 mJ
+	Average power: 6615.87 mW
+
+Results for the VALIDATION set:
+	F1-score: 0.9470586249345849
+	Accuracy: 0.9477
+	Error: 0.05229997634887695
+
+Inference Metrics for VALIDATION set:
+	Latency per sample: 0.0012 ms
+	Energy per sample: 0.0081 mJ
+	Average power: 6813.95 mW
+Averaged mean:  11.806060106815423
+Averaged std:  3.187966172875094
+Averaged mean_all_incorrect_labels:  -5.930425348279747
+Averaged std_all_incorrect_labels:  3.964923441462406
+Averaged mean:  11.87581044921968
+Averaged std:  3.1109074897527926
+Averaged mean_all_incorrect_labels:  -6.870736980460447
+Averaged std_all_incorrect_labels:  4.180024345933301
+  0%|                                                                                 | 0/10000 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 410, in <module>
+    main()
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 384, in main
+    Evaluation.eval_val_set_light(model, inputs=test_inputs_full, targets=test_targets_full,
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Evaluation.py", line 91, in eval_val_set_light
+    y_predicted[chunk_indices_validation[i]], predicted_with_layers_up_to[chunk_indices_validation[i]] = \
+  File "/home/jetson/.local/lib/python3.10/site-packages/torch/_tensor.py", line 1213, in __array__
+    return self.numpy().astype(dtype, copy=False)
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+Traceback (most recent call last):
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 410, in <module>
+    main()
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 384, in main
+    Evaluation.eval_val_set_light(model, inputs=test_inputs_full, targets=test_targets_full,
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Evaluation.py", line 91, in eval_val_set_light
+    y_predicted[chunk_indices_validation[i]], predicted_with_layers_up_to[chunk_indices_validation[i]] = \
+  File "/home/jetson/.local/lib/python3.10/site-packages/torch/_tensor.py", line 1213, in __array__
+    return self.numpy().astype(dtype, copy=False)
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.

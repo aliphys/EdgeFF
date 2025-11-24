@@ -1,0 +1,13 @@
+Running as part of sweep: ta1bqsmd
+Sweep override - layers: [784, 100, 10]
+Sweep override - softmax_epochs: 3
+Sweep override - train_batch_size: 256
+Sweep override - seed: 42
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'layers' was locked by 'sweep' (ignored update).
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'seed' was locked by 'sweep' (ignored update).
+Found INA3221 power monitor at: /sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon1
+Started tegrastats monitoring
+Hardware monitoring enabled.
+Rep Epoch: 1/3 [256/50000 (1%)]
+Rep Epoch: 1/3 [2816/50000 (6%)]
+Rep Epoch: 1/3 [5376/50000 (11%)]

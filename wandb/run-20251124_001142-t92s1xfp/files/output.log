@@ -1,0 +1,16 @@
+Found INA3221 power monitor at: /sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon1
+Started tegrastats monitoring
+Hardware monitoring enabled.
+Rep Epoch: 1/3 [256/50000 (1%)]
+Rep Epoch: 1/3 [2816/50000 (6%)]
+Rep Epoch: 1/3 [5376/50000 (11%)]
+Rep Epoch: 1/3 [7936/50000 (16%)]
+Rep Epoch: 1/3 [10496/50000 (21%)]
+Rep Epoch: 1/3 [13056/50000 (26%)]
+Rep Epoch: 1/3 [15616/50000 (31%)]
+Rep Epoch: 1/3 [18176/50000 (36%)]
+Rep Epoch: 1/3 [20736/50000 (41%)]
+Rep Epoch: 1/3 [23296/50000 (47%)]
+Rep Epoch: 1/3 [25856/50000 (52%)]
+Rep Epoch: 1/3 [28416/50000 (57%)]
+Rep Epoch: 1/3 [30976/50000 (62%)]

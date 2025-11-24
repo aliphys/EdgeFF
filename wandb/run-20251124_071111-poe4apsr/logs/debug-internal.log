@@ -1,0 +1,12 @@
+{"time":"2025-11-24T07:11:11.992299946+01:00","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2025-11-24T07:11:12.33269625+01:00","level":"INFO","msg":"stream: created new stream","id":"poe4apsr"}
+{"time":"2025-11-24T07:11:12.332890208+01:00","level":"INFO","msg":"handler: started","stream_id":"poe4apsr"}
+{"time":"2025-11-24T07:11:12.333063909+01:00","level":"INFO","msg":"stream: started","id":"poe4apsr"}
+{"time":"2025-11-24T07:11:12.333072581+01:00","level":"INFO","msg":"writer: started","stream_id":"poe4apsr"}
+{"time":"2025-11-24T07:11:12.333100006+01:00","level":"INFO","msg":"sender: started","stream_id":"poe4apsr"}
+{"time":"2025-11-24T07:27:16.119132302+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-11-24T07:27:16.456903883+01:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-11-24T07:27:16.464303461+01:00","level":"INFO","msg":"stream: closing","id":"poe4apsr"}
+{"time":"2025-11-24T07:27:16.464356199+01:00","level":"INFO","msg":"handler: closed","stream_id":"poe4apsr"}
+{"time":"2025-11-24T07:27:16.464505515+01:00","level":"INFO","msg":"sender: closed","stream_id":"poe4apsr"}
+{"time":"2025-11-24T07:27:16.464523404+01:00","level":"INFO","msg":"stream: closed","id":"poe4apsr"}

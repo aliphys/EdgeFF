@@ -1,0 +1,23 @@
+2025-11-23 23:04:49,974 INFO    MainThread:7504 [wandb_setup.py:_flush():80] Current SDK version is 0.23.0
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_setup.py:_flush():80] Configure stats pid to 7504
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_setup.py:_flush():80] Loading settings from /home/jetson/.config/wandb/settings
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_setup.py:_flush():80] Loading settings from /home/jetson/Documents/github/EdgeFF/wandb/settings
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_init.py:setup_run_log_directory():713] Logging user logs to /home/jetson/Documents/github/EdgeFF/wandb/run-20251123_230449-hae6s4rl/logs/debug.log
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_init.py:setup_run_log_directory():714] Logging internal logs to /home/jetson/Documents/github/EdgeFF/wandb/run-20251123_230449-hae6s4rl/logs/debug-internal.log
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_init.py:init():840] calling init triggers
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_init.py:init():845] wandb.init called with sweep_config: {'layers': '784,100,10', 'rep-epochs': 3, 'seed': 42, 'softmax-epochs': 3, 'train-batch-size': 256}
+config: {'layers': [784, 100, 10], 'representation_epochs': 3, 'softmax_epochs': 3, 'train_batch_size': 256, 'test_batch_size': 512, 'val_size': 10000, 'log_val_samples': 1000, 'final_train_sample': 5000, 'final_val_sample': 2000, 'seed': 42, 'dataset': 'MNIST', 'train_flag': True, 'enable_hw_monitor': True, 'hw_interval_ms': 1000, 'device': 'cuda', 'cuda_available': True, 'cuda_device_name': 'Orin', '_wandb': {}}
+2025-11-23 23:04:49,975 INFO    MainThread:7504 [wandb_init.py:init():888] starting backend
+2025-11-23 23:04:50,218 INFO    MainThread:7504 [wandb_init.py:init():891] sending inform_init request
+2025-11-23 23:04:50,223 INFO    MainThread:7504 [wandb_init.py:init():899] backend started and connected
+2025-11-23 23:04:50,225 INFO    MainThread:7504 [wandb_run.py:_config_callback():1385] config_cb None None {'layers': '784,100,10', 'rep-epochs': 3, 'seed': 42, 'softmax-epochs': 3, 'train-batch-size': 256}
+2025-11-23 23:04:50,226 INFO    MainThread:7504 [wandb_init.py:init():969] updated telemetry
+2025-11-23 23:04:50,234 INFO    MainThread:7504 [wandb_init.py:init():993] communicating run to backend with 90.0 second timeout
+2025-11-23 23:04:50,874 INFO    MainThread:7504 [wandb_init.py:init():1040] starting run threads in backend
+2025-11-23 23:04:51,095 INFO    MainThread:7504 [wandb_run.py:_console_start():2504] atexit reg
+2025-11-23 23:04:51,095 INFO    MainThread:7504 [wandb_run.py:_redirect():2352] redirect: wrap_raw
+2025-11-23 23:04:51,095 INFO    MainThread:7504 [wandb_run.py:_redirect():2421] Wrapping output streams.
+2025-11-23 23:04:51,096 INFO    MainThread:7504 [wandb_run.py:_redirect():2444] Redirects installed.
+2025-11-23 23:04:51,102 INFO    MainThread:7504 [wandb_init.py:init():1080] run started, returning control to user process
+2025-11-23 23:04:51,108 INFO    MainThread:7504 [wandb_run.py:_config_callback():1385] config_cb None None {'representation_epochs': 3, 'softmax_epochs': 3, 'train_batch_size': 256, 'device': 'cuda', 'cuda_available': True, 'cuda_device_name': 'Orin'}

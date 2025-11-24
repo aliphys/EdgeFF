@@ -1,0 +1,193 @@
+Running as part of sweep: u80frn6l
+Sweep override - layers: [784, 100, 100, 10]
+Sweep override - softmax_epochs: 3
+Sweep override - train_batch_size: 256
+Sweep override - seed: 42
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'layers' was locked by 'sweep' (ignored update).
+[34m[1mwandb[0m: [33mWARNING[0m Config item 'seed' was locked by 'sweep' (ignored update).
+Found INA3221 power monitor at: /sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon1
+Started tegrastats monitoring
+Hardware monitoring enabled.
+Rep Epoch: 1/3 [256/50000 (1%)]
+Rep Epoch: 1/3 [2816/50000 (6%)]
+Rep Epoch: 1/3 [5376/50000 (11%)]
+Rep Epoch: 1/3 [7936/50000 (16%)]
+Rep Epoch: 1/3 [10496/50000 (21%)]
+Rep Epoch: 1/3 [13056/50000 (26%)]
+Rep Epoch: 1/3 [15616/50000 (31%)]
+Rep Epoch: 1/3 [18176/50000 (36%)]
+Rep Epoch: 1/3 [20736/50000 (41%)]
+Rep Epoch: 1/3 [23296/50000 (47%)]
+Rep Epoch: 1/3 [25856/50000 (52%)]
+Rep Epoch: 1/3 [28416/50000 (57%)]
+Rep Epoch: 1/3 [30976/50000 (62%)]
+Rep Epoch: 1/3 [33536/50000 (67%)]
+Rep Epoch: 1/3 [36096/50000 (72%)]
+Rep Epoch: 1/3 [38656/50000 (77%)]
+Rep Epoch: 1/3 [41216/50000 (82%)]
+Rep Epoch: 1/3 [43776/50000 (88%)]
+Rep Epoch: 1/3 [46336/50000 (93%)]
+Rep Epoch: 1/3 [48896/50000 (98%)]
+Rep Epoch: 2/3 [256/50000 (1%)]
+Rep Epoch: 2/3 [2816/50000 (6%)]
+Rep Epoch: 2/3 [5376/50000 (11%)]
+Rep Epoch: 2/3 [7936/50000 (16%)]
+Rep Epoch: 2/3 [10496/50000 (21%)]
+Rep Epoch: 2/3 [13056/50000 (26%)]
+Rep Epoch: 2/3 [15616/50000 (31%)]
+Rep Epoch: 2/3 [18176/50000 (36%)]
+Rep Epoch: 2/3 [20736/50000 (41%)]
+Rep Epoch: 2/3 [23296/50000 (47%)]
+Rep Epoch: 2/3 [25856/50000 (52%)]
+Rep Epoch: 2/3 [28416/50000 (57%)]
+Rep Epoch: 2/3 [30976/50000 (62%)]
+Rep Epoch: 2/3 [33536/50000 (67%)]
+Rep Epoch: 2/3 [36096/50000 (72%)]
+Rep Epoch: 2/3 [38656/50000 (77%)]
+Rep Epoch: 2/3 [41216/50000 (82%)]
+Rep Epoch: 2/3 [43776/50000 (88%)]
+Rep Epoch: 2/3 [46336/50000 (93%)]
+Rep Epoch: 2/3 [48896/50000 (98%)]
+Rep Epoch: 3/3 [256/50000 (1%)]
+Rep Epoch: 3/3 [2816/50000 (6%)]
+Rep Epoch: 3/3 [5376/50000 (11%)]
+Rep Epoch: 3/3 [7936/50000 (16%)]
+Rep Epoch: 3/3 [10496/50000 (21%)]
+Rep Epoch: 3/3 [13056/50000 (26%)]
+Rep Epoch: 3/3 [15616/50000 (31%)]
+Rep Epoch: 3/3 [18176/50000 (36%)]
+Rep Epoch: 3/3 [20736/50000 (41%)]
+Rep Epoch: 3/3 [23296/50000 (47%)]
+Rep Epoch: 3/3 [25856/50000 (52%)]
+Rep Epoch: 3/3 [28416/50000 (57%)]
+Rep Epoch: 3/3 [30976/50000 (62%)]
+Rep Epoch: 3/3 [33536/50000 (67%)]
+Rep Epoch: 3/3 [36096/50000 (72%)]
+Rep Epoch: 3/3 [38656/50000 (77%)]
+Rep Epoch: 3/3 [41216/50000 (82%)]
+Rep Epoch: 3/3 [43776/50000 (88%)]
+Rep Epoch: 3/3 [46336/50000 (93%)]
+Rep Epoch: 3/3 [48896/50000 (98%)]
+Softmax Epoch: 1/3 [256/50000 (1%)]
+Softmax Epoch: 1/3 [2816/50000 (6%)]
+Softmax Epoch: 1/3 [5376/50000 (11%)]
+Softmax Epoch: 1/3 [7936/50000 (16%)]
+Softmax Epoch: 1/3 [10496/50000 (21%)]
+Softmax Epoch: 1/3 [13056/50000 (26%)]
+Softmax Epoch: 1/3 [15616/50000 (31%)]
+Softmax Epoch: 1/3 [18176/50000 (36%)]
+Softmax Epoch: 1/3 [20736/50000 (41%)]
+Softmax Epoch: 1/3 [23296/50000 (47%)]
+Softmax Epoch: 1/3 [25856/50000 (52%)]
+Softmax Epoch: 1/3 [28416/50000 (57%)]
+Softmax Epoch: 1/3 [30976/50000 (62%)]
+Softmax Epoch: 1/3 [33536/50000 (67%)]
+Softmax Epoch: 1/3 [36096/50000 (72%)]
+Softmax Epoch: 1/3 [38656/50000 (77%)]
+Softmax Epoch: 1/3 [41216/50000 (82%)]
+Softmax Epoch: 1/3 [43776/50000 (88%)]
+Softmax Epoch: 1/3 [46336/50000 (93%)]
+Softmax Epoch: 1/3 [48896/50000 (98%)]
+Softmax Epoch: 2/3 [256/50000 (1%)]
+Softmax Epoch: 2/3 [2816/50000 (6%)]
+Softmax Epoch: 2/3 [5376/50000 (11%)]
+Softmax Epoch: 2/3 [7936/50000 (16%)]
+Softmax Epoch: 2/3 [10496/50000 (21%)]
+Softmax Epoch: 2/3 [13056/50000 (26%)]
+Softmax Epoch: 2/3 [15616/50000 (31%)]
+Softmax Epoch: 2/3 [18176/50000 (36%)]
+Softmax Epoch: 2/3 [20736/50000 (41%)]
+Softmax Epoch: 2/3 [23296/50000 (47%)]
+Softmax Epoch: 2/3 [25856/50000 (52%)]
+Softmax Epoch: 2/3 [28416/50000 (57%)]
+Softmax Epoch: 2/3 [30976/50000 (62%)]
+Softmax Epoch: 2/3 [33536/50000 (67%)]
+Softmax Epoch: 2/3 [36096/50000 (72%)]
+Softmax Epoch: 2/3 [38656/50000 (77%)]
+Softmax Epoch: 2/3 [41216/50000 (82%)]
+Softmax Epoch: 2/3 [43776/50000 (88%)]
+Softmax Epoch: 2/3 [46336/50000 (93%)]
+Softmax Epoch: 2/3 [48896/50000 (98%)]
+Softmax Epoch: 3/3 [256/50000 (1%)]
+Softmax Epoch: 3/3 [2816/50000 (6%)]
+Softmax Epoch: 3/3 [5376/50000 (11%)]
+Softmax Epoch: 3/3 [7936/50000 (16%)]
+Softmax Epoch: 3/3 [10496/50000 (21%)]
+Softmax Epoch: 3/3 [13056/50000 (26%)]
+Softmax Epoch: 3/3 [15616/50000 (31%)]
+Softmax Epoch: 3/3 [18176/50000 (36%)]
+Softmax Epoch: 3/3 [20736/50000 (41%)]
+Softmax Epoch: 3/3 [23296/50000 (47%)]
+Softmax Epoch: 3/3 [25856/50000 (52%)]
+Softmax Epoch: 3/3 [28416/50000 (57%)]
+Softmax Epoch: 3/3 [30976/50000 (62%)]
+Softmax Epoch: 3/3 [33536/50000 (67%)]
+Softmax Epoch: 3/3 [36096/50000 (72%)]
+Softmax Epoch: 3/3 [38656/50000 (77%)]
+Softmax Epoch: 3/3 [41216/50000 (82%)]
+Softmax Epoch: 3/3 [43776/50000 (88%)]
+Softmax Epoch: 3/3 [46336/50000 (93%)]
+Softmax Epoch: 3/3 [48896/50000 (98%)]
+
+Results for the TRAIN set:
+	F1-score: 0.09963575052504507
+	Accuracy: 0.10006
+	Error: 0.8999399989843369
+
+Inference Metrics for TRAIN set:
+	Latency per sample: 0.0012 ms
+	Energy per sample: 0.0083 mJ
+	Average power: 6644.74 mW
+
+Results for the TEST set:
+	F1-score: 0.9303718175573857
+	Accuracy: 0.9312
+	Error: 0.06879997253417969
+
+Inference Metrics for TEST set:
+	Latency per sample: 0.0012 ms
+	Energy per sample: 0.0080 mJ
+	Average power: 6644.74 mW
+
+Results for the VALIDATION set:
+	F1-score: 0.9233988725600879
+	Accuracy: 0.9245
+	Error: 0.0755000114440918
+
+Inference Metrics for VALIDATION set:
+	Latency per sample: 0.0012 ms
+	Energy per sample: 0.0082 mJ
+	Average power: 6644.74 mW
+Averaged mean:  6.6652991919626725
+Averaged std:  1.6863773993944107
+Averaged mean_all_incorrect_labels:  -3.5163835343437984
+Averaged std_all_incorrect_labels:  2.1450473038029645
+Averaged mean:  7.5391551927403935
+Averaged std:  1.94015405534089
+Averaged mean_all_incorrect_labels:  -3.6975067531398262
+Averaged std_all_incorrect_labels:  2.228800399769144
+Averaged mean:  6.688477249761263
+Averaged std:  1.8684231626206096
+Averaged mean_all_incorrect_labels:  -5.158579179251855
+Averaged std_all_incorrect_labels:  2.4159178818958775
+  0%|                                                                                 | 0/10000 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 409, in <module>
+    main()
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 383, in main
+    Evaluation.eval_val_set_light(model, inputs=test_inputs_full, targets=test_targets_full,
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Evaluation.py", line 91, in eval_val_set_light
+    y_predicted[chunk_indices_validation[i]], predicted_with_layers_up_to[chunk_indices_validation[i]] = \
+  File "/home/jetson/.local/lib/python3.10/site-packages/torch/_tensor.py", line 1213, in __array__
+    return self.numpy().astype(dtype, copy=False)
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+Traceback (most recent call last):
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 409, in <module>
+    main()
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py", line 383, in main
+    Evaluation.eval_val_set_light(model, inputs=test_inputs_full, targets=test_targets_full,
+  File "/home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Evaluation.py", line 91, in eval_val_set_light
+    y_predicted[chunk_indices_validation[i]], predicted_with_layers_up_to[chunk_indices_validation[i]] = \
+  File "/home/jetson/.local/lib/python3.10/site-packages/torch/_tensor.py", line 1213, in __array__
+    return self.numpy().astype(dtype, copy=False)
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.

@@ -1,0 +1,337 @@
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+from tqdm import tqdm
+from torch.optim import Adam
+import wandb  # added for experiment tracking
+
+import numpy as np
+from sklearn.utils import shuffle
+
+from itertools import islice
+import os
+
+def overlay_y_on_x(x, y):
+    """Replace the first 10 pixels of data [x] with one-hot-encoded label [y]
+    """
+    x_ = x.clone()
+    x_[:, :10] *= 0.0
+    x_[range(x.shape[0]), y] = x.max()
+    return x_
+
+
+def overlay_on_x_neutral(x):
+    """Replace the first 10 pixels of data [x] with 0.1s
+    """
+    x_ = x.clone()
+    x_[:, :10] *= 0.0
+    x_[range(x.shape[0]), :10] = 0.1  # x.max()
+    return x_
+
+
+class Net(torch.nn.Module):
+    def __init__(self, dims, device=None):
+        super().__init__()
+        # Auto-detect device if not specified
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = device
+        
+        self.layers = []
+        self.softmax_layers = []
+        for d in range(len(dims) - 1):
+            self.layers += [Layer(dims[d], dims[d + 1]).to(self.device)]
+        for d in range(1, len(dims)):
+            in_dim = dims[d]
+            for i in range(1, d):
+                in_dim += dims[i]
+            self.softmax_layers += [SoftmaxLayer(in_features=in_dim, out_features=10).to(self.device)]
+
+
+
+    def predict_one_pass(self, x, batch_size):
+        num_layers = len(self.layers)
+        # Ensure input is on the correct device
+        x = x.to(self.device)
+        
+        # val set
+        h = overlay_on_x_neutral(x)
+
+        for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
+            h = layer(h)
+
+            try:
+                softmax_layer_input
+                # Keep on GPU - no .cpu() call
+                softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
+                # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
+            except NameError:
+                # Keep on GPU - no .cpu() call
+                softmax_layer_input = h
+                # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
+            if i == num_layers - 1:
+                _, softmax_layer_output = softmax_layer(softmax_layer_input)
+
+        output = softmax_layer_output.argmax(1)
+        # print("output: ", output)
+        return output
+
+    def check_confidence(self, layer_num, confidence_mean_vec, confidence_std_vec, softmax_layer_output_l):
+        confidence_flag = False
+        threshold = confidence_mean_vec[layer_num] - confidence_std_vec[layer_num]
+        if torch.max(softmax_layer_output_l) > threshold:  # then we are confident
+            confidence_flag = True
+        return confidence_flag
+
+    def light_predict_one_sample(self, x, confidence_mean_vec, confidence_std_vec):
+        # Ensure input is on the correct device
+        x = x.to(self.device)
+        h = overlay_on_x_neutral(x)
+
+        confidence_flag = False  # if confident: True
+        predicted_with_layers_up_to = 0
+        for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
+            if not confidence_flag:
+                predicted_with_layers_up_to += 1
+                h = layer(h)
+
+                try:
+                    softmax_layer_input
+                    # Keep on GPU - no .cpu() call
+                    softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
+                    # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
+                except NameError:
+                    # Keep on GPU - no .cpu() call
+                    softmax_layer_input = h
+                    # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
+
+                softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
+
+                # check confidence
+                # not required for the last layer
+                confidence_flag = self.check_confidence(layer_num=i, confidence_mean_vec=confidence_mean_vec,
+                                                        confidence_std_vec=confidence_std_vec,
+                                                        softmax_layer_output_l=softmax_layer_output_l)
+
+        return softmax_layer_output.argmax(1), predicted_with_layers_up_to
+
+    def light_predict_analysis(self, x, num_layers):  # dims is not needed; just num layers
+        # Ensure input is on the correct device
+        x = x.to(self.device)
+        num_samples = x.shape[0]
+
+        y_predicted_on_layer = np.zeros((num_layers, num_samples))
+        cumulative_goodness_on_layer = np.zeros((num_layers, num_samples))
+        softmax_output_on_layer = np.zeros((num_layers, num_samples, 10))  # 10 is the number of softmax neurons
+
+        # embed neutral label
+        h = overlay_on_x_neutral(x)
+        # softmax_input_size = 0
+        for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
+            h = layer(h)  # should be the same as forward
+            # softmax_input_size += h.size()[1]
+            # softmax_layer_input = torch.empty((num_samples, softmax_input_size))
+            try:
+                softmax_layer_input
+                # Keep on GPU - no .cpu() call
+                softmax_layer_input = torch.cat((softmax_layer_input, h), 1)
+                # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
+            except NameError:
+                # Keep on GPU - no .cpu() call
+                softmax_layer_input = h
+                # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
+
+            for j in range(i, num_layers):
+                cumulative_goodness_on_layer[j, :] += h.pow(2).mean(1).detach().cpu().numpy()
+
+            # print(softmax_layer(softmax_layer_input).shape)
+            # print(softmax_layer(softmax_layer_input).detach().cpu().numpy())
+            # y_predicted_on_layer[i, :] = softmax_layer(softmax_layer_input).argmax(1)  # to be checked
+            softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
+            y_predicted_on_layer[i, :] = softmax_layer_output.argmax(1).cpu().numpy()  # Only move final result to CPU
+            # softmax_output_on_layer[i, :, :] = softmax_layer(softmax_layer_input).detach().cpu().numpy()
+            # softmax_output_on_layer[i, :, :] = softmax_layer.forward(softmax_layer_input).detach().cpu().numpy()
+            softmax_output_on_layer[i, :, :] = softmax_layer_output_l.detach().cpu().numpy()
+        # print(y_predicted_on_layer.shape)
+        # exit()
+
+        return y_predicted_on_layer, cumulative_goodness_on_layer, softmax_output_on_layer
+
+    def train(self, x_pos, x_neg):
+        # Ensure inputs are on the correct device
+        x_pos = x_pos.to(self.device)
+        x_neg = x_neg.to(self.device)
+        
+        h_pos, h_neg = x_pos, x_neg
+        for i, layer in enumerate(self.layers):
+            # print('training layer', i, '...')
+            h_pos, h_neg = layer.train(h_pos, h_neg)
+
+    def train_softmax_layer(self, x_neutral_label, y, batch_size, dims):  # , num_layers, num_neurons
+        # Ensure inputs are on the correct device
+        x_neutral_label = x_neutral_label.to(self.device)
+        y = y.to(self.device)
+
+        for d, softmax_layer in enumerate(self.softmax_layers, start=0):
+            h_neutral_label = x_neutral_label
+            # for softmax layer of layer d
+            num_input_features = sum(dims[1:(d + 2)])
+            softmax_layer_input = torch.empty((batch_size, num_input_features), device=self.device)
+            for i, layer in islice(enumerate(self.layers), 0, (d + 1)):  # from first layer to layer d (d included)
+                # print("i was here ", i, d)
+                h_neutral_label = layer.forward(h_neutral_label)
+                # store the result in softmax_layer_input
+                index_start = sum(dims[1:(i + 1)])
+                index_end = index_start + dims[i + 1]
+                softmax_layer_input[:, index_start:index_end] = h_neutral_label
+            softmax_layer.train(softmax_layer_input, y)
+
+
+class Layer(nn.Linear):
+    def __init__(self, in_features, out_features,
+                 bias=True, device=None, dtype=None):
+        super().__init__(in_features, out_features, bias, device, dtype)
+        self.relu = torch.nn.ReLU()
+        self.opt = Adam(self.parameters(), lr=0.03)
+        self.threshold = 2.0
+        self.num_iterations = 1
+
+    def forward(self, x):
+        x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
+        return self.relu(torch.mm(x_direction, self.weight.T) + self.bias.unsqueeze(0))
+
+    def train(self, x_pos, x_neg):
+        for i in range(self.num_iterations):
+            g_pos = self.forward(x_pos).pow(2).mean(1)
+            g_neg = self.forward(x_neg).pow(2).mean(1)
+            # The following loss pushes pos (neg) samples to
+            # values larger (smaller) than the self.threshold.
+            loss = torch.log(1 + torch.exp(torch.cat([
+                -g_pos + self.threshold,
+                g_neg - self.threshold]))).mean()
+            self.opt.zero_grad()
+            # this backward just compute the derivative and hence
+            # is not considered backpropagation.
+            loss.backward()
+            self.opt.step()
+        return self.forward(x_pos).detach(), self.forward(x_neg).detach()
+
+
+class SoftmaxLayer(nn.Module):
+    def __init__(self, in_features, out_features):
+        super().__init__()
+        self.softmax_l = nn.Linear(in_features, out_features)
+        nn.init.xavier_uniform_(self.softmax_l.weight)
+        self.softmax = torch.nn.Softmax(dim=1)
+        self.opt = Adam(self.parameters(), lr=0.03)
+        self.criterion = nn.CrossEntropyLoss()
+
+    def forward(self, x):
+        #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
+        output_l = self.softmax_l(x)
+        output = self.softmax(output_l)  # .argmax(1)
+        return output_l, output
+
+    def to_categorical(y, num_classes):
+        """ 1-hot encodes a tensor """
+        return np.eye(num_classes, dtype='uint8')[y]
+
+    def train(self, x, y):
+        self.opt.zero_grad()
+        yhat,_ = self.forward(x)
+        # y_one_hot = nn.functional.one_hot(y, num_classes=10).to(torch.float32)
+        loss = self.criterion(yhat, y)
+        loss.backward()
+        self.opt.step()
+
+
+def build_model(x_pos, x_neg, x_neutral, targets, layers, wandb_run=None, eval_inputs=None, eval_targets=None):
+    """Build and train the FF model.
+
+    Added wandb_run (optional) to log epoch-level metrics.
+    If eval_inputs/eval_targets provided, a small subset is used for quick accuracy logging.
+    """
+    dims = layers
+    # Auto-detect GPU and create model on the appropriate device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = Net(dims, device=device)
+    
+    print(f"Training model on device: {device}")
+    
+    # Move data to device once at the beginning
+    x_pos = x_pos.to(device)
+    x_neg = x_neg.to(device)
+    x_neutral = x_neutral.to(device)
+    targets = targets.to(device)
+
+    num_epochs = 100
+    representation_batch_size = 5000
+    softmax_batch_size = 500
+    num_train_samples_repr = 50000  # subset used for representation layers
+    num_train_samples_softmax = 50000
+
+    # Precompute evaluation subset indices (use first 1000 samples for speed)
+    if eval_inputs is not None and eval_targets is not None:
+        eval_subset_inputs = eval_inputs[:1000].to(device)
+        eval_subset_targets = eval_targets[:1000].to(device)
+    else:
+        eval_subset_inputs = None
+        eval_subset_targets = None
+
+    # ---- Phase 1: Train representation layers ----
+    for epoch in tqdm(range(num_epochs), desc="Train representation layers"):
+        train_data_record_indices = range(0, num_train_samples_repr)
+        train_data_record_indices_shuffled = shuffle(train_data_record_indices)
+
+        num_batches = int(num_train_samples_repr / representation_batch_size)
+        chunk_indices = np.array_split(train_data_record_indices_shuffled, num_batches)
+        for i in range(num_batches):
+            x_pos_, x_neg_ = x_pos[chunk_indices[i]], x_neg[chunk_indices[i]]
+            model.train(x_pos_, x_neg_)
+
+        # Log epoch-level sample accuracy for monitoring (optional)
+        if wandb_run and eval_subset_inputs is not None:
+            with torch.no_grad():
+                preds = model.predict_one_pass(eval_subset_inputs, batch_size=len(eval_subset_inputs))
+                sample_val_acc = (preds == eval_subset_targets).float().mean().item()
+            wandb_run.log({
+                'epoch': epoch,
+                'phase': 'representation',
+                'sample_val_accuracy': sample_val_acc,
+            })
+
+    # ---- Phase 2: Train softmax layers ----
+    for epoch in tqdm(range(num_epochs), desc="Train softmax layers"):
+        train_data_record_indices = range(0, num_train_samples_softmax)
+        train_data_record_indices_shuffled = shuffle(train_data_record_indices)
+
+        num_batches = int(num_train_samples_softmax / softmax_batch_size)
+        chunk_indices = np.array_split(train_data_record_indices_shuffled, num_batches)
+        for i in range(num_batches):
+            x_neutral_, targets_ = x_neutral[chunk_indices[i]], targets[chunk_indices[i]]
+            model.train_softmax_layer(x_neutral_, targets_, softmax_batch_size, dims)
+
+        if wandb_run and eval_subset_inputs is not None:
+            with torch.no_grad():
+                preds = model.predict_one_pass(eval_subset_inputs, batch_size=len(eval_subset_inputs))
+                sample_val_acc = (preds == eval_subset_targets).float().mean().item()
+            wandb_run.log({
+                'epoch': epoch,
+                'phase': 'softmax',
+                'sample_val_accuracy': sample_val_acc,
+            })
+
+    # save model
+    name = 'temp_'
+    model_dir = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'model')
+    os.makedirs(model_dir, exist_ok=True)
+    model_path = os.path.join(model_dir, name)
+    torch.save(model, model_path)
+
+    if wandb_run:
+        artifact = wandb.Artifact('ff-model', type='model')
+        artifact.add_file(model_path)
+        wandb_run.log_artifact(artifact)
+
+    return model

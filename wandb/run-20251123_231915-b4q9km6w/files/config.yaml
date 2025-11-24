@@ -1,0 +1,100 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            hixbe14u7vritous7uzfka359jt9kap1:
+                args:
+                    - --layers=784,100,100,100,10
+                    - --rep-epochs=3
+                    - --seed=42
+                    - --softmax-epochs=3
+                    - --train-batch-size=256
+                codePath: exploratory/Refractoring_gpu/Main.py
+                codePathLocal: exploratory/Refractoring_gpu/Main.py
+                cpu_count: 6
+                cpu_count_logical: 6
+                cudaVersion: "12.6"
+                disk:
+                    /:
+                        total: "124434268160"
+                        used: "85287337984"
+                email: ali.jahangiri@eit.lth.se
+                executable: /usr/bin/python
+                git:
+                    commit: 35a18eeadf266e42aa23de4b4ce0259338ffcd99
+                gpu: Orin (nvgpu)
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      name: Orin (nvgpu)
+                      uuid: 9b25f227-0772-5986-8a61-fb20f196f77b
+                host: jetson-desktop
+                memory:
+                    total: "7990075392"
+                os: Linux-5.15.148-tegra-aarch64-with-glibc2.35
+                program: /home/jetson/Documents/github/EdgeFF/exploratory/Refractoring_gpu/Main.py
+                python: CPython 3.10.12
+                root: /home/jetson/Documents/github/EdgeFF
+                startedAt: "2025-11-23T22:19:15.272359Z"
+                writerId: hixbe14u7vritous7uzfka359jt9kap1
+        m: []
+        python_version: 3.10.12
+        t:
+            "1":
+                - 1
+                - 5
+                - 41
+                - 53
+            "2":
+                - 1
+                - 5
+                - 41
+                - 53
+            "3":
+                - 14
+                - 15
+                - 16
+            "4": 3.10.12
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": linux-aarch64
+cuda_available:
+    value: true
+cuda_device_name:
+    value: Orin
+dataset:
+    value: MNIST
+device:
+    value: cuda
+enable_hw_monitor:
+    value: true
+final_train_sample:
+    value: 5000
+final_val_sample:
+    value: 2000
+hw_interval_ms:
+    value: 1000
+layers:
+    value: 784,100,100,100,10
+log_val_samples:
+    value: 1000
+rep-epochs:
+    value: 3
+representation_epochs:
+    value: 3
+seed:
+    value: 42
+softmax-epochs:
+    value: 3
+softmax_epochs:
+    value: 3
+test_batch_size:
+    value: 512
+train-batch-size:
+    value: 256
+train_batch_size:
+    value: 256
+train_flag:
+    value: true
+val_size:
+    value: 10000

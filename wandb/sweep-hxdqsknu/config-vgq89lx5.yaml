@@ -1,0 +1,12 @@
+wandb_version: 1
+
+layers:
+  value: 784,400,400,400,400,10
+rep-epochs:
+  value: 10
+seed:
+  value: 42
+softmax-epochs:
+  value: 10
+train-batch-size:
+  value: 512

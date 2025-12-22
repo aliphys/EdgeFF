@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description='Launch W&B sweep for FF-MNIST')
     parser.add_argument('--config', type=str, default='sweep_config.yaml',
                         help='Path to sweep configuration YAML file')
-    parser.add_argument('--project', type=str, default='SweepCUDA100+200',
+    parser.add_argument('--project', type=str, default='replicateRun2000FF',
                         help='W&B project name')
     parser.add_argument('--entity', type=str, default=None,
                         help='W&B entity (username or team name)')

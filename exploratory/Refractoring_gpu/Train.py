@@ -11,32 +11,91 @@ from sklearn.utils import shuffle
 from itertools import islice
 import os
 
-def overlay_y_on_x(x, y):
+def overlay_y_on_x(x, y, max_value=10.0, is_color=False):
     """Replace the first 10 pixels of data [x] with one-hot-encoded label [y]
+    
+    For grayscale images (MNIST, Fashion-MNIST), modifies the first 10 pixels.
+    For color images (SVHN, CIFAR10), modifies the first 10 pixels of each color channel.
+    
+    Args:
+        x: Input tensor (flattened)
+        y: Label tensor
+        max_value: Maximum value to use for one-hot encoding (default: 10.0)
+        is_color: True for RGB images (SVHN, CIFAR10), False for grayscale (MNIST, FMNIST)
     """
     x_ = x.clone()
-    x_[:, :10] *= 0.0
-    x_[range(x.shape[0]), y] = x.max()
+    
+    if is_color:
+        # For RGB images: 3 channels × 32 × 32 = 3072 pixels
+        # Apply one-hot encoding to first 10 pixels of each channel
+        pixels_per_channel = x_.shape[1] // 3  # 1024 for 32×32 images
+        
+        # Red channel (pixels 0-9)
+        x_[:, :10] *= 0.0
+        x_[range(x.shape[0]), y] = max_value
+        
+        # Green channel (pixels 1024-1033)
+        x_[:, pixels_per_channel:pixels_per_channel+10] *= 0.0
+        x_[range(x.shape[0]), pixels_per_channel + y] = max_value
+        
+        # Blue channel (pixels 2048-2057)
+        x_[:, 2*pixels_per_channel:2*pixels_per_channel+10] *= 0.0
+        x_[range(x.shape[0]), 2*pixels_per_channel + y] = max_value
+    else:
+        # For grayscale images: apply to first 10 pixels only
+        x_[:, :10] *= 0.0
+        x_[range(x.shape[0]), y] = max_value
+        
     return x_
 
 
-def overlay_on_x_neutral(x):
+def overlay_on_x_neutral(x, is_color=False):
     """Replace the first 10 pixels of data [x] with 0.1s
+    
+    For grayscale images (MNIST, Fashion-MNIST), modifies the first 10 pixels.
+    For color images (SVHN, CIFAR10), modifies the first 10 pixels of each color channel.
+    
+    Args:
+        x: Input tensor (flattened)
+        is_color: True for RGB images (SVHN, CIFAR10), False for grayscale (MNIST, FMNIST)
     """
     x_ = x.clone()
-    x_[:, :10] *= 0.0
-    x_[range(x.shape[0]), :10] = 0.1  # x.max()
+    
+    if is_color:
+        # For RGB images: apply to first 10 pixels of each channel
+        pixels_per_channel = x_.shape[1] // 3  # 1024 for 32×32 images
+        
+        # Red channel
+        x_[:, :10] *= 0.0
+        x_[:, :10] = 0.1
+        
+        # Green channel
+        x_[:, pixels_per_channel:pixels_per_channel+10] *= 0.0
+        x_[:, pixels_per_channel:pixels_per_channel+10] = 0.1
+        
+        # Blue channel
+        x_[:, 2*pixels_per_channel:2*pixels_per_channel+10] *= 0.0
+        x_[:, 2*pixels_per_channel:2*pixels_per_channel+10] = 0.1
+    else:
+        # For grayscale images
+        x_[:, :10] *= 0.0
+        x_[:, :10] = 0.1
+        
     return x_
 
 
 class Net(torch.nn.Module):
-    def __init__(self, dims, device=None):
+    def __init__(self, dims, device=None, onehot_max_value=10.0, is_color=False):
         super().__init__()
         # Auto-detect device if not specified
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
             self.device = device
+        
+        # Store encoding parameters
+        self.onehot_max_value = onehot_max_value
+        self.is_color = is_color
         
         self.layers = []
         self.softmax_layers = []
@@ -56,7 +115,7 @@ class Net(torch.nn.Module):
         x = x.to(self.device)
         
         # val set
-        h = overlay_on_x_neutral(x)
+        h = overlay_on_x_neutral(x, self.is_color)
 
         for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
             h = layer(h)
@@ -87,7 +146,7 @@ class Net(torch.nn.Module):
     def light_predict_one_sample(self, x, confidence_mean_vec, confidence_std_vec):
         # Ensure input is on the correct device
         x = x.to(self.device)
-        h = overlay_on_x_neutral(x)
+        h = overlay_on_x_neutral(x, self.is_color)
 
         confidence_flag = False  # if confident: True
         predicted_with_layers_up_to = 0

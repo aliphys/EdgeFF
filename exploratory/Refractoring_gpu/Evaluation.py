@@ -16,7 +16,7 @@ def print_results(labels_vec, predictions_vec):
 
 def eval_train_set(model, inputs, targets):
     # train set
-    num_train_samples = 50000
+    num_train_samples = len(targets)  # Dynamic based on actual data
     train_data_record_indices = range(0, num_train_samples)
 
     batch_size = 5000
@@ -37,7 +37,7 @@ def eval_train_set(model, inputs, targets):
 
 def eval_test_set(model, inputs, targets):
     # test set
-    num_test_samples = 10000
+    num_test_samples = len(targets)  # Dynamic based on actual data
     test_data_record_indices = range(0, num_test_samples)
 
     batch_size = 5000
@@ -56,8 +56,8 @@ def eval_test_set(model, inputs, targets):
 
 
 def eval_val_set(model, inputs, targets):
-    # test set
-    num_test_samples = 10000
+    # validation set
+    num_test_samples = len(targets)  # Dynamic based on actual data
     test_data_record_indices = range(0, num_test_samples)
 
     batch_size = 5000
@@ -77,8 +77,8 @@ def eval_val_set(model, inputs, targets):
 
 
 def eval_val_set_light(model, inputs, targets, confidence_mean_vec, confidence_std_vec):
-    # test set
-    num_test_samples = 10000
+    # validation set for light inference
+    num_test_samples = len(targets)  # Dynamic based on actual data
     test_data_record_indices = range(0, num_test_samples)
 
     batch_size = 1

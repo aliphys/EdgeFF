@@ -1,9 +1,8 @@
-program: exploratory/Refractoring_gpu/Main.py
+program: Main.py
 command:
   - ${env}
   - python
   - ${program}
-  - --no-cuda
   - ${args}
 method: grid
 metric:
@@ -12,14 +11,31 @@ metric:
 parameters:
   layers:
     values:
-      - "784,200,200,200,200,10"   # 4 hidden layers, width 200
-      - "784,400,400,400,10"   # 3 hidden layers, width 400
-      - "784,400,400,400,400,10"   # 4 hidden layers, width 400
+      - "784,100,10"   # 1 hidden layer, width 100
+      - "784,200,10"   # 1 hidden layer, width 200
+      - "784,400,10"   # 1 hidden layer, width 400
+      - "784,800,10"   # 1 hidden layer, width 800
+      - "784,1600,10"  # 1 hidden layer, width 1600
+      - "784,2000,10"  # 1 hidden layer, width 2000
+  no-cuda:
+    values:
+      - true   # Disable CUDA
+      - false  # Enable CUDA (default)
   seed:
-    value: 42
+    values:
+      - 42
+      - 123
+      - 456
+      - 789
+      - 1011
+      - 1213
+      - 1415
+      - 1617
+      - 1819
+      - 2021
   rep-epochs:
-    value: 10
+    value: 20
   softmax-epochs:
-    value: 10
+    value: 20
   train-batch-size:
     value: 512

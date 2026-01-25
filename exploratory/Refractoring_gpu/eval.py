@@ -71,6 +71,18 @@ def main():
     # Init wandb
     wandb.init(project=config.get('project', 'edgeff-network-width'), job_type='eval')
 
+    # Get run_ids from latest sweep
+    api = wandb.Api()
+    sweeps = api.sweeps(config.get('project', 'edgeff-network-width'))
+    if sweeps:
+        latest_sweep = max(sweeps, key=lambda s: s.created_at)
+        runs = latest_sweep.runs
+        run_ids = [run.id for run in runs]
+        print(f"Using latest sweep: {latest_sweep.id} with {len(run_ids)} runs")
+    else:
+        run_ids = config.get('run_ids', [])
+        print("No sweeps found, using config run_ids")
+
     # Hardware monitor
     try:
         from tegrats_monitor import INA3221PowerMonitor, TegratsMonitor

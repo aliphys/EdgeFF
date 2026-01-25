@@ -88,8 +88,9 @@ def eval_val_set_light(model, inputs, targets, confidence_mean_vec, confidence_s
     predicted_with_layers_up_to = np.zeros(num_test_samples)
     for i in tqdm(range(num_batches)):
         x_ = inputs[chunk_indices_validation[i]]
-        y_predicted[chunk_indices_validation[i]], predicted_with_layers_up_to[chunk_indices_validation[i]] = \
-            model.light_predict_one_sample(x_, confidence_mean_vec, confidence_std_vec)
+        pred, layers_used = model.light_predict_one_sample(x_, confidence_mean_vec, confidence_std_vec)
+        y_predicted[chunk_indices_validation[i]] = pred.cpu().numpy()
+        predicted_with_layers_up_to[chunk_indices_validation[i]] = layers_used.cpu().numpy()
 
     print("\nResults for the {}VALIDATION{} set based on light inference: ".format('\033[1m', '\033[0m'))
     print_results(targets.detach().cpu().numpy(), y_predicted)

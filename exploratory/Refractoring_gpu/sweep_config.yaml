@@ -9,14 +9,21 @@ metric:
   name: final/test_accuracy
   goal: maximize
 parameters:
+  dataset:
+    values:
+      - MNIST
+      - FMNIST
+      - SVHN
+      - CIFAR10
   layers:
     values:
-      - "784,100,10"   # 1 hidden layer, width 100
-      - "784,200,10"   # 1 hidden layer, width 200
-      - "784,400,10"   # 1 hidden layer, width 400
-      - "784,800,10"   # 1 hidden layer, width 800
-      - "784,1600,10"  # 1 hidden layer, width 1600
-      - "784,2000,10"  # 1 hidden layer, width 2000
+      - "784,100,10"   # 1 hidden layer, width 100 (MNIST/FMNIST)
+      - "784,500,10"   # 1 hidden layer, width 500 (MNIST/FMNIST)
+      - "784,1000,10"  # 1 hidden layer, width 1000 (MNIST/FMNIST)
+      - "784,2000,10"  # 1 hidden layer, width 2000 (MNIST/FMNIST)
+      - "784,3000,10"  # 1 hidden layer, width 3000 (MNIST/FMNIST)
+      - "784,4000,10"  # 1 hidden layer, width 4000 (MNIST/FMNIST)
+      - "784,5000,10"  # 1 hidden layer, width 5000 (MNIST/FMNIST)
   no-cuda:
     values:
       - true   # Disable CUDA
@@ -26,13 +33,6 @@ parameters:
       - 42
       - 123
       - 456
-      - 789
-      - 1011
-      - 1213
-      - 1415
-      - 1617
-      - 1819
-      - 2021
   rep-epochs:
     value: 20
   softmax-epochs:

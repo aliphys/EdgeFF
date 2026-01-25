@@ -26,7 +26,7 @@ def main():
 
     # Query wandb
     api = wandb.Api()
-    runs = api.runs(config.get('project', 'edgeff'), filters={'jobType': 'eval'})
+    runs = api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'})
 
     data = []
     for run in runs:

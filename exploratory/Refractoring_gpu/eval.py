@@ -69,7 +69,7 @@ def main():
         load_dotenv(dotenv_path=dotenv_path)
 
     # Init wandb
-    wandb.init(project=config.get('project', 'edgeff'), job_type='eval')
+    wandb.init(project=config.get('project', 'edgeff-network-width'), job_type='eval')
 
     # Hardware monitor
     try:

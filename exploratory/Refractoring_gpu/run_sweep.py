@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-W&B Sweep Launcher for Forward-Forward MNIST experiments
+W&B Sweep Launcher for Forward-Forward Network Width experiments
 Usage:
     python run_sweep.py                  # Create sweep and print ID
     python run_sweep.py --run-agent      # Create sweep and run agent
@@ -13,10 +13,10 @@ import os
 from pathlib import Path
 
 def main():
-    parser = argparse.ArgumentParser(description='Launch W&B sweep for FF-MNIST')
-    parser.add_argument('--config', type=str, default='sweep_config.yaml',
+    parser = argparse.ArgumentParser(description='Launch W&B sweep for FF-Network Width')
+    parser.add_argument('--config', type=str, default='sweep_width_config.yaml',
                         help='Path to sweep configuration YAML file')
-    parser.add_argument('--project', type=str, default='replicateRun2000FF',
+    parser.add_argument('--project', type=str, default='edgeff-network-width',
                         help='W&B project name')
     parser.add_argument('--entity', type=str, default=None,
                         help='W&B entity (username or team name)')

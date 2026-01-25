@@ -4,6 +4,7 @@ import subprocess
 import threading
 import time
 
+import torch
 import wandb
 
 
@@ -14,8 +15,8 @@ class INA3221PowerMonitor:
         self.hwmon_path = None
         self.channels = {
             1: "VDD_IN",              # Total Module Power
-            2: "VDD_CPU_GPU_CV",      # CPU/GPU/CV cores
-            3: "VDD_SOC"              # Memory & Engines
+            2: "VDD_CPU_GPU_CV",      # Total power consumed by CPU, CPU and CV cores i.e. DLA and PVA
+            3: "VDD_SOC"              # Power consumed by SOC core which supplies to memory subsystem and various engines like nvdec, nvenc, vi, vic, isp etc
         }
         
         # Try to find hwmon path
@@ -207,6 +208,26 @@ class TegratsMonitor:
                 if self.power_monitor:
                     power_metrics = self.power_monitor.get_power_metrics()
                     metrics.update(power_metrics)
+                
+                # Add PyTorch GPU memory metrics
+                try:
+                    if torch.cuda.is_available():
+                        metrics['gpu_memory_allocated_mb'] = torch.cuda.memory_allocated() / (1024 ** 2)
+                        metrics['gpu_memory_reserved_mb'] = torch.cuda.memory_reserved() / (1024 ** 2)
+                        metrics['gpu_memory_peak_mb'] = torch.cuda.max_memory_allocated() / (1024 ** 2)
+                except Exception as e:
+                    print(f"Error getting PyTorch GPU memory: {e}")
+                
+                # Add CPU memory metrics
+                try:
+                    import psutil
+                    memory = psutil.virtual_memory()
+                    metrics['cpu_memory_used_mb'] = memory.used / (1024 ** 2)
+                    metrics['cpu_memory_percent'] = memory.percent
+                except ImportError:
+                    pass
+                except Exception as e:
+                    print(f"Error getting CPU memory: {e}")
                 
                 # Store power sample for inference measurement (use VDD_IN as total power)
                 current_time = time.time()

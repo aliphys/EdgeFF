@@ -1,0 +1,5 @@
+project: edgeff
+dataset: MNIST
+inference_batch_sizes: [1, 2, 8, 16, 32, 64, 128, 256, 512]
+hw_interval_ms: 500
+run_ids: []  # To be filled with actual run IDs from the sweep

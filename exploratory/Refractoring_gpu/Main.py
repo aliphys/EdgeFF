@@ -170,6 +170,10 @@ def main():
             'cuda_device_name': torch.cuda.get_device_name(0) if use_cuda else None,
         }, allow_val_change=True)
 
+        # Set run name based on width
+        width = layers[1] if len(layers) > 1 else 0
+        wandb_run.name = f"FF-Width-{width}-Seed-{args.seed}"
+
     # Log source code artifact (Main, Train, Evaluation, tools, tegrats_monitor if exists)
     code_artifact = wandb.Artifact('ff-source', type='code')
     current_dir = Path(__file__).resolve().parent  # Refractoring directory
@@ -438,7 +442,21 @@ def main():
         name = 'temp_'
         model_dir = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'model')
         os.makedirs(model_dir, exist_ok=True)
-        torch.save(model, os.path.join(model_dir, name))
+        model_path = os.path.join(model_dir, name)
+        torch.save(model, model_path)
+        
+        # Log model as wandb artifact
+        model_artifact = wandb.Artifact('trained-model', type='model')
+        model_artifact.add_file(model_path)
+        # Add metadata
+        width = layers[1] if len(layers) > 1 else 0  # Hidden layer width
+        model_artifact.metadata = {
+            'layers': layers,
+            'width': width,
+            'dataset': args.dataset,
+            'seed': args.seed
+        }
+        wandb_run.log_artifact(model_artifact)
     else:
         name = 'temp_'
         model = torch.load(os.path.split(os.path.realpath(__file__))[0] + '/model/' + name)

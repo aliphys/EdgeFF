@@ -1,0 +1,60 @@
+' PlantUML diagrams for tegrats_monitor.py
+' File: exploratory/pytorch-cnn-mnist/tegrats_monitor.puml
+' Contains: class diagram + sequence diagram for runtime flow
+
+@startuml
+skinparam classAttributeIconSize 0
+
+class INA3221PowerMonitor {
+  - hwmon_path: Optional[str]
+  - channels: dict
+  + __init__(): void
+  + read_channel(channel_num: int) : dict | None
+  + get_power_metrics() : dict
+}
+
+class TegratsMonitor {
+  - running: bool
+  - thread: threading.Thread | None
+  - process: subprocess.Popen | None
+  - power_monitor: INA3221PowerMonitor | None
+  + __init__(power_monitor=None): void
+  + parse_tegrastats(line: str) : dict
+  + monitor_loop() : void
+  + start() : void
+  + stop() : void
+}
+
+INA3221PowerMonitor "0..1" <-- "0..1" TegratsMonitor : uses / optional
+TegratsMonitor ..> wandb : logs to
+TegratsMonitor ..> subprocess : spawns tegrastats
+TegratsMonitor ..> threading : runs monitor_loop in background
+
+@enduml
+
+' --- Sequence diagram ---
+
+@startuml
+actor User
+participant TegratsMonitor
+participant "tegrastats process" as subprocess
+participant "INA3221PowerMonitor" as INA
+participant wandb
+
+User -> TegratsMonitor: start()
+TegratsMonitor -> TegratsMonitor: set running=True, start thread
+TegratsMonitor -> subprocess: spawn tegrastats --interval 1000
+loop each line from stdout
+    subprocess -> TegratsMonitor: line (string)
+    TegratsMonitor -> TegratsMonitor: parse_tegrastats(line)
+    alt power_monitor available
+        TegratsMonitor -> INA: get_power_metrics()
+        INA --> TegratsMonitor: power metrics dict
+    end
+    TegratsMonitor -> wandb: log(metrics)
+end
+User -> TegratsMonitor: stop()
+TegratsMonitor -> subprocess: terminate()
+TegratsMonitor -> thread: join()
+
+@enduml

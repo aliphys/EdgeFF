@@ -99,7 +99,7 @@ def eval_val_set_light(model, inputs, targets, confidence_mean_vec, confidence_s
     print("percentage for layers_up_to ", values, " : ", counts/num_test_samples)
 
 
-def eval_with_inference_measurement(model, inputs, targets, hw_monitor=None, set_name='test'):
+def eval_with_inference_measurement(model, inputs, targets, hw_monitor=None, set_name='test', batch_size=None):
     """
     Evaluate model and measure inference energy/latency if hw_monitor is provided.
     
@@ -109,12 +109,16 @@ def eval_with_inference_measurement(model, inputs, targets, hw_monitor=None, set
         targets: Target labels
         hw_monitor: TegratsMonitor instance (optional)
         set_name: Name of the dataset (for logging)
+        batch_size: Batch size for inference (default: min(5000, num_samples))
     
     Returns:
         dict: Contains accuracy, error, and inference metrics (if hw_monitor provided)
     """
     num_samples = inputs.shape[0]
-    batch_size = min(5000, num_samples)
+    if batch_size is None:
+        batch_size = min(5000, num_samples)
+    else:
+        batch_size = min(batch_size, num_samples)
     num_batches = int(np.ceil(num_samples / batch_size))
     
     y_predicted = np.zeros(num_samples)
@@ -133,9 +137,13 @@ def eval_with_inference_measurement(model, inputs, targets, hw_monitor=None, set
         
         predictions = model.predict_one_pass(x_batch, batch_size=actual_batch_size)
         
+        # Measure memory after inference
+        memory_mb = torch.cuda.memory_allocated() / 1e6 if torch.cuda.is_available() else 0
+        
         if hw_monitor:
             batch_metrics = hw_monitor.stop_inference_measurement(actual_batch_size)
             if batch_metrics:
+                batch_metrics['memory_mb'] = memory_mb
                 all_inference_metrics.append(batch_metrics)
         
         y_predicted[start_idx:end_idx] = predictions.detach().cpu().numpy()
@@ -162,6 +170,7 @@ def eval_with_inference_measurement(model, inputs, targets, hw_monitor=None, set
             f'{set_name}/inference_latency_per_sample_ms': np.mean([m['inference/latency_per_sample_ms'] for m in all_inference_metrics]),
             f'{set_name}/inference_energy_per_sample_mj': np.mean([m['inference/energy_per_sample_mj'] for m in all_inference_metrics]),
             f'{set_name}/inference_avg_power_mw': np.mean([m['inference/avg_power_during_inference_mw'] for m in all_inference_metrics]),
+            f'{set_name}/inference_memory_mb': np.mean([m.get('memory_mb', 0) for m in all_inference_metrics]),
             f'{set_name}/inference_total_latency_ms': sum([m['inference/total_batch_latency_ms'] for m in all_inference_metrics]),
             f'{set_name}/inference_total_energy_mj': sum([m['inference/total_batch_energy_mj'] for m in all_inference_metrics]),
         }

@@ -303,6 +303,3 @@ wandb/
 **/checkpoints/
 **/weights/
 
-# Exploratory/experimental directories
-exploratory/
-**/exploratory/

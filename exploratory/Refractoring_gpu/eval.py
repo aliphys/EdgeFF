@@ -121,7 +121,7 @@ def main():
             
         artifact_dir = model_artifact.download()
         model_path = os.path.join(artifact_dir, 'temp_')
-        model = torch.load(model_path, map_location=device)
+        model = torch.load(model_path, map_location=device, weights_only=False)
 
         # Set model attributes
         model.device = device

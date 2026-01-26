@@ -76,7 +76,7 @@ def main():
     project = api.project(config.get('project', 'edgeff-network-width'))
     sweeps = project.sweeps()
     if sweeps:
-        latest_sweep = max(sweeps, key=lambda s: s.created_at)
+        latest_sweep = max(sweeps, key=lambda s: s.created_at) # TODO: handle sweeps date
         runs = latest_sweep.runs
         run_ids = [run.id for run in runs]
         print(f"Using latest sweep: {latest_sweep.id} with {len(run_ids)} runs")

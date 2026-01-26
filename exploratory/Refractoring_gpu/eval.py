@@ -106,10 +106,20 @@ def main():
     batch_sizes = config.get('inference_batch_sizes', [1, 2, 8, 16, 32, 64, 128, 256, 512])
 
     for run_id in run_ids:
-        # Download model
-        artifact_name = f"run-{run_id}-trained-model:latest"
-        artifact = wandb.use_artifact(artifact_name)
-        artifact_dir = artifact.download()
+        # Get artifacts logged by this run
+        run = api.run(f"{project_name}/{run_id}")
+        artifacts = list(run.logged_artifacts())
+        model_artifact = None
+        for art in artifacts:
+            if art.type == 'model':
+                model_artifact = art
+                break
+        
+        if model_artifact is None:
+            print(f"No model artifact found for run {run_id}, skipping")
+            continue
+            
+        artifact_dir = model_artifact.download()
         model_path = os.path.join(artifact_dir, 'temp_')
         model = torch.load(model_path, map_location=device)
 
@@ -122,7 +132,7 @@ def main():
         model.onehot_max_value = onehot_max_value
         model.is_color = is_color
 
-        width = artifact.metadata.get('width', 0)
+        width = model_artifact.metadata.get('width', 0) if model_artifact.metadata else 0
 
         for batch_size in batch_sizes:
             print(f"Evaluating run {run_id}, width {width}, batch_size {batch_size}")

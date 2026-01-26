@@ -71,18 +71,17 @@ def main():
     # Init wandb
     wandb.init(project=config.get('project', 'edgeff-network-width'), job_type='eval')
 
-    # Get run_ids from latest sweep
+    # Get run_ids from sweep in config
     api = wandb.Api()
-    project = api.project(config.get('project', 'edgeff-network-width'))
-    sweeps = project.sweeps()
-    if sweeps:
-        latest_sweep = max(sweeps, key=lambda s: s.created_at) # TODO: handle sweeps date
-        runs = latest_sweep.runs
-        run_ids = [run.id for run in runs]
-        print(f"Using latest sweep: {latest_sweep.id} with {len(run_ids)} runs")
-    else:
-        run_ids = config.get('run_ids', [])
-        print("No sweeps found, using config run_ids")
+    project_name = config.get('project', 'edgeff-network-width')
+    sweep_id = config.get('sweep_id')
+    if not sweep_id:
+        raise ValueError("sweep_id must be specified in config")
+    
+    sweep = api.sweep(f"{project_name}/{sweep_id}")
+    runs = sweep.runs
+    run_ids = [run.id for run in runs]
+    print(f"Using sweep: {sweep_id} with {len(run_ids)} runs")
 
     # Hardware monitor
     try:

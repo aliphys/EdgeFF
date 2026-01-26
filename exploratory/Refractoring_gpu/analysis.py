@@ -26,29 +26,29 @@ def main():
 
     # Query wandb
     api = wandb.Api()
-    project = api.project(config.get('project', 'edgeff-network-width'))
-    sweeps = project.sweeps()
-    if sweeps:
-        latest_sweep = max(sweeps, key=lambda s: s.created_at)
-        runs = [run for run in api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'}) if run.sweep and run.sweep.id == latest_sweep.id]
-        print(f"Using latest sweep: {latest_sweep.id} with {len(runs)} eval runs")
-    else:
-        runs = api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'})
-        print(f"No sweeps found, using all eval runs: {len(runs)}")
+    project_name = config.get('project', 'edgeff-network-width')
+    
+    # Get latest eval run
+    runs = api.runs(project_name, filters={'jobType': 'eval'}, order='-created_at')
+    runs_list = list(runs)
+    if not runs_list:
+        print("No eval runs found")
+        return
+    latest_run = runs_list[0]
+    print(f"Using latest eval run: {latest_run.id} ({latest_run.name})")
 
     data = []
-    for run in runs:
-        for row in run.scan_history():
-            if 'width' in row and 'batch_size' in row:
-                data.append({
-                    'width': row.get('width'),
-                    'batch_size': row.get('batch_size'),
-                    'latency_per_sample_ms': row.get('latency_per_sample_ms', 0),
-                    'energy_per_sample_mj': row.get('energy_per_sample_mj', 0),
-                    'avg_power_mw': row.get('avg_power_mw', 0),
-                    'memory_mb': row.get('memory_mb', 0),
-                    'accuracy': row.get('accuracy', 0)
-                })
+    for row in latest_run.scan_history():
+        if 'width' in row and 'batch_size' in row:
+            data.append({
+                'width': row.get('width'),
+                'batch_size': row.get('batch_size'),
+                'latency_per_sample_ms': row.get('latency_per_sample_ms', 0),
+                'energy_per_sample_mj': row.get('energy_per_sample_mj', 0),
+                'avg_power_mw': row.get('avg_power_mw', 0),
+                'memory_mb': row.get('memory_mb', 0),
+                'accuracy': row.get('accuracy', 0)
+            })
 
     df = pd.DataFrame(data)
     if df.empty:

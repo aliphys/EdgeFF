@@ -243,7 +243,6 @@ __marimo__/
 # Image datasets
 *.jpg
 *.jpeg
-*.png
 *.bmp
 *.gif
 *.tiff

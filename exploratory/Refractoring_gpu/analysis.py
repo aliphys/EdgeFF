@@ -28,10 +28,12 @@ def main():
     api = wandb.Api()
     project = api.project(config.get('project', 'edgeff-network-width'))
     sweeps = project.sweeps()
+    if sweeps:
+        latest_sweep = max(sweeps, key=lambda s: s.created_at)
         runs = [run for run in api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'}) if run.sweep and run.sweep.id == latest_sweep.id]
         print(f"Using latest sweep: {latest_sweep.id} with {len(runs)} eval runs")
     else:
-    runs = api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'})
+        runs = api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'})
         print(f"No sweeps found, using all eval runs: {len(runs)}")
 
     data = []

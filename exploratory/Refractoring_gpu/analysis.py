@@ -26,9 +26,8 @@ def main():
 
     # Query wandb
     api = wandb.Api()
-    sweeps = api.sweeps(config.get('project', 'edgeff-network-width'))
-    if sweeps:
-        latest_sweep = max(sweeps, key=lambda s: s.created_at)
+    project = api.project(config.get('project', 'edgeff-network-width'))
+    sweeps = project.sweeps()
         runs = [run for run in api.runs(config.get('project', 'edgeff-network-width'), filters={'jobType': 'eval'}) if run.sweep and run.sweep.id == latest_sweep.id]
         print(f"Using latest sweep: {latest_sweep.id} with {len(runs)} eval runs")
     else:

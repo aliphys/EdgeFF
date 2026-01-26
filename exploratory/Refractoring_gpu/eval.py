@@ -73,7 +73,8 @@ def main():
 
     # Get run_ids from latest sweep
     api = wandb.Api()
-    sweeps = api.sweeps(config.get('project', 'edgeff-network-width'))
+    project = api.project(config.get('project', 'edgeff-network-width'))
+    sweeps = project.sweeps()
     if sweeps:
         latest_sweep = max(sweeps, key=lambda s: s.created_at)
         runs = latest_sweep.runs
@@ -105,7 +106,7 @@ def main():
 
     batch_sizes = config.get('inference_batch_sizes', [1, 2, 8, 16, 32, 64, 128, 256, 512])
 
-    for run_id in config.get('run_ids', []):
+    for run_id in run_ids:
         # Download model
         artifact_name = f"run-{run_id}-trained-model:latest"
         artifact = wandb.use_artifact(artifact_name)

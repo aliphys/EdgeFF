@@ -1,15 +1,16 @@
 """
-eval_variance.py - Inference Variance Analysis with GPU/CPU Comparison
-======================================================================
+eval_variance.py - Inference Variance Analysis with GPU/CPU Comparison + Energy
+================================================================================
 
 This script evaluates trained models from a W&B sweep multiple times to
-capture inference latency variance, throughput metrics, and GPU vs CPU
+capture inference latency/energy variance, throughput metrics, and GPU vs CPU
 comparison with violin plots.
 
 Features:
     - Runs inference on both CUDA and CPU for comparison
     - Multiple batch sizes for throughput analysis
     - Per-sample latency tracking (batch_size=1)
+    - Energy measurement on Jetson devices (INA3221 power sensor)
     - Warmup run discarded for each batch size (fresh timing)
     - Model loaded fresh for each device (no transfer bias)
 
@@ -19,11 +20,13 @@ Usage:
 
 Output:
     - violin_latency_by_width.png: Latency distribution per width (GPU vs CPU)
+    - violin_energy_by_width.png: Energy distribution per width (Jetson only)
     - throughput_vs_batchsize.png: Throughput curves by batch size
+    - energy_vs_batchsize.png: Energy per sample curves by batch size
     - speedup_heatmap.png: GPU speedup ratio heatmap
+    - energy_heatmap.png: Energy consumption heatmap
     - per_sample_histogram.png: Per-sample latency histogram
     - latency_stats.csv: Statistics per (width, batch_size, device)
-    - throughput_stats.csv: Throughput statistics
     - W&B logging of all measurements
 """
 
@@ -39,10 +42,21 @@ import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 from dotenv import load_dotenv
 from collections import defaultdict
+
+
+# Try to import hardware monitoring (Jetson only)
+HW_MONITOR_AVAILABLE = False
+INA3221PowerMonitor = None
+TegratsMonitor = None
+try:
+    from tegrats_monitor import INA3221PowerMonitor, TegratsMonitor, InferenceMetrics
+    HW_MONITOR_AVAILABLE = True
+    print("Hardware monitoring available (Jetson device detected)")
+except ImportError:
+    print("Hardware monitoring not available (not a Jetson device)")
 
 
 def load_config(config_path):
@@ -148,6 +162,79 @@ def measure_inference_latency(model, inputs, batch_size, device):
     return latency_ms, num_samples
 
 
+def measure_inference_with_energy(model, inputs, batch_size, device, power_monitor, hw_monitor=None):
+    """
+    Measure inference latency AND energy consumption.
+    
+    Args:
+        model: The model to evaluate
+        inputs: Input tensor
+        batch_size: Batch size for inference
+        device: torch device
+        power_monitor: INA3221PowerMonitor instance
+        hw_monitor: TegratsMonitor instance (optional, for background sampling)
+    
+    Returns:
+        dict with latency_ms, num_samples, energy_mj, avg_power_mw
+    """
+    num_samples = len(inputs)
+    
+    # Start inference measurement if using TegratsMonitor
+    if hw_monitor:
+        hw_monitor.start_inference_measurement()
+    
+    # Get power reading before
+    power_before = power_monitor.get_power_metrics() if power_monitor else {}
+    
+    # Synchronize before timing
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
+    
+    start_time = time.perf_counter()
+    
+    with torch.no_grad():
+        _ = model.predict_one_pass(inputs, batch_size=batch_size)
+    
+    # Synchronize after inference
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
+    
+    end_time = time.perf_counter()
+    
+    # Get power reading after
+    power_after = power_monitor.get_power_metrics() if power_monitor else {}
+    
+    # Stop inference measurement
+    energy_metrics = None
+    if hw_monitor:
+        energy_metrics = hw_monitor.stop_inference_measurement(num_samples)
+    
+    latency_ms = (end_time - start_time) * 1000
+    latency_s = latency_ms / 1000.0
+    
+    # Calculate energy if we have power readings
+    if power_before and power_after:
+        # Use average of before/after power readings
+        power_mw = (power_before.get('VDD_IN_power_mw', 0) + power_after.get('VDD_IN_power_mw', 0)) / 2
+        energy_mj = power_mw * latency_s  # mW * s = mJ
+    elif energy_metrics:
+        # Use TegratsMonitor's calculated metrics
+        power_mw = energy_metrics.get('inference/avg_power_during_inference_mw', 0)
+        energy_mj = energy_metrics.get('inference/total_batch_energy_mj', 0)
+    else:
+        power_mw = 0
+        energy_mj = 0
+    
+    return {
+        'latency_ms': latency_ms,
+        'num_samples': num_samples,
+        'energy_mj': energy_mj,
+        'avg_power_mw': power_mw,
+        'energy_per_sample_mj': energy_mj / num_samples if num_samples > 0 else 0,
+        'latency_per_sample_ms': latency_ms / num_samples if num_samples > 0 else 0
+    }
+
+
 def measure_per_sample_latencies(model, inputs, device, max_samples=100):
     """
     Measure latency for individual samples (batch_size=1).
@@ -187,6 +274,59 @@ def measure_per_sample_latencies(model, inputs, device, max_samples=100):
         per_sample_latencies.append(latency_ms)
     
     return per_sample_latencies
+
+
+def measure_per_sample_energy(model, inputs, device, power_monitor, max_samples=50):
+    """
+    Measure energy for individual samples (batch_size=1).
+    Returns list of per-sample energy in millijoules.
+    
+    Note: Energy measurement at batch_size=1 has high variance due to
+    power sensor sampling rate. Use larger sample counts for better estimates.
+    """
+    per_sample_energies = []
+    per_sample_powers = []
+    num_samples = min(len(inputs), max_samples)
+    
+    if not power_monitor:
+        return [], []
+    
+    # Warmup run (discarded)
+    with torch.no_grad():
+        _ = model.predict_one_pass(inputs[:1], batch_size=1)
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
+    
+    for i in range(num_samples):
+        sample = inputs[i:i+1]
+        
+        # Get power before
+        power_before = power_monitor.get_power_metrics()
+        
+        if device.type == 'cuda':
+            torch.cuda.synchronize()
+        
+        start_time = time.perf_counter()
+        
+        with torch.no_grad():
+            _ = model.predict_one_pass(sample, batch_size=1)
+        
+        if device.type == 'cuda':
+            torch.cuda.synchronize()
+        
+        end_time = time.perf_counter()
+        
+        # Get power after
+        power_after = power_monitor.get_power_metrics()
+        
+        latency_s = end_time - start_time
+        avg_power_mw = (power_before.get('VDD_IN_power_mw', 0) + power_after.get('VDD_IN_power_mw', 0)) / 2
+        energy_mj = avg_power_mw * latency_s
+        
+        per_sample_energies.append(energy_mj)
+        per_sample_powers.append(avg_power_mw)
+    
+    return per_sample_energies, per_sample_powers
 
 
 def create_violin_plot_comparison(data_cuda, data_cpu, output_path):
@@ -421,6 +561,162 @@ def create_per_sample_histogram(per_sample_data, output_path):
     print(f"Saved per-sample histogram to: {output_path}")
 
 
+def create_single_violin_plot(data_by_width, output_path, ylabel='Energy per Sample (mJ)', title='Energy Distribution by Width', color='#3498db'):
+    """
+    Create a single violin plot for one metric by width.
+    """
+    if not data_by_width:
+        print(f"No data for violin plot: {output_path}")
+        return
+    
+    widths = sorted(data_by_width.keys())
+    data = [data_by_width[w] for w in widths]
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    parts = ax.violinplot(data, positions=range(len(widths)), showmeans=True, showmedians=True)
+    for pc in parts['bodies']:
+        pc.set_facecolor(color)
+        pc.set_alpha(0.7)
+    
+    ax.set_xticks(range(len(widths)))
+    ax.set_xticklabels([str(w) for w in widths])
+    ax.set_xlabel('Network Width')
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.yaxis.grid(True, linestyle='--', alpha=0.7)
+    
+    # Add stats
+    for i, width in enumerate(widths):
+        mean_val = np.mean(data_by_width[width])
+        std_val = np.std(data_by_width[width])
+        ax.annotate(f'μ={mean_val:.4f}\nσ={std_val:.4f}', 
+                    xy=(i, max(data_by_width[width]) * 1.02),
+                    ha='center', va='bottom', fontsize=8)
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Saved violin plot to: {output_path}")
+
+
+def create_energy_plot(energy_data, output_path):
+    """
+    Create energy per sample vs batch size plot for each width.
+    
+    energy_data: dict[(width, batch_size, device)] -> list of energy_per_sample values
+    """
+    # Organize data (GPU only for energy)
+    plot_data = defaultdict(dict)
+    
+    for (width, batch_size, device), energies in energy_data.items():
+        if device == 'cuda':  # Energy is only meaningful for GPU on Jetson
+            mean_energy = np.mean(energies)
+            std_energy = np.std(energies)
+            plot_data[width][batch_size] = (mean_energy, std_energy)
+    
+    widths = sorted(plot_data.keys())
+    n_widths = len(widths)
+    
+    if n_widths == 0:
+        print("No energy data for plot")
+        return
+    
+    # Create subplot for each width
+    cols = min(3, n_widths)
+    rows = (n_widths + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows), squeeze=False)
+    
+    for idx, width in enumerate(widths):
+        row, col = idx // cols, idx % cols
+        ax = axes[row, col]
+        
+        if plot_data[width]:
+            batch_sizes = sorted(plot_data[width].keys())
+            means = [plot_data[width][bs][0] for bs in batch_sizes]
+            stds = [plot_data[width][bs][1] for bs in batch_sizes]
+            ax.errorbar(batch_sizes, means, yerr=stds, marker='o', 
+                       color='#9b59b6', capsize=3, linewidth=2)
+        
+        ax.set_xlabel('Batch Size')
+        ax.set_ylabel('Energy per Sample (mJ)')
+        ax.set_title(f'Width: {width}')
+        ax.set_xscale('log', base=2)
+        ax.grid(True, linestyle='--', alpha=0.7)
+    
+    # Hide empty subplots
+    for idx in range(n_widths, rows * cols):
+        row, col = idx // cols, idx % cols
+        axes[row, col].set_visible(False)
+    
+    plt.suptitle('Energy per Sample vs Batch Size by Network Width (GPU)', fontsize=14)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Saved energy plot to: {output_path}")
+
+
+def create_energy_heatmap(energy_data, output_path):
+    """
+    Create heatmap showing energy per sample by width and batch size.
+    """
+    # Get all widths and batch sizes (GPU only)
+    widths = set()
+    batch_sizes = set()
+    for (width, batch_size, device) in energy_data.keys():
+        if device == 'cuda':
+            widths.add(width)
+            batch_sizes.add(batch_size)
+    
+    widths = sorted(widths)
+    batch_sizes = sorted(batch_sizes)
+    
+    if not widths or not batch_sizes:
+        print("No data for energy heatmap")
+        return
+    
+    # Build energy matrix
+    energy_matrix = np.full((len(widths), len(batch_sizes)), np.nan)
+    
+    for i, width in enumerate(widths):
+        for j, batch_size in enumerate(batch_sizes):
+            key = (width, batch_size, 'cuda')
+            if key in energy_data:
+                energy_matrix[i, j] = np.mean(energy_data[key])
+    
+    # Create heatmap
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    im = ax.imshow(energy_matrix, cmap='YlOrRd', aspect='auto')
+    
+    # Add colorbar
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label('Energy per Sample (mJ)')
+    
+    # Set ticks
+    ax.set_xticks(range(len(batch_sizes)))
+    ax.set_xticklabels([str(bs) for bs in batch_sizes])
+    ax.set_yticks(range(len(widths)))
+    ax.set_yticklabels([str(w) for w in widths])
+    
+    ax.set_xlabel('Batch Size')
+    ax.set_ylabel('Network Width')
+    ax.set_title('Energy per Sample by Width and Batch Size (GPU)')
+    
+    # Add text annotations
+    for i in range(len(widths)):
+        for j in range(len(batch_sizes)):
+            value = energy_matrix[i, j]
+            if not np.isnan(value):
+                ax.text(j, i, f'{value:.3f}', ha='center', va='center', 
+                       color='black', fontsize=8)
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Saved energy heatmap to: {output_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description='Evaluate inference variance with GPU/CPU comparison')
     parser.add_argument('--config', type=str, default=None, help='Path to YAML config file')
@@ -434,6 +730,8 @@ def main():
     parser.add_argument('--output-dir', type=str, default='.', help='Output directory for plots')
     parser.add_argument('--skip-cpu', action='store_true', help='Skip CPU evaluation (faster)')
     parser.add_argument('--skip-cuda', action='store_true', help='Skip CUDA evaluation')
+    parser.add_argument('--skip-energy', action='store_true', help='Skip energy measurement')
+    parser.add_argument('--hw-interval-ms', type=int, default=100, help='Hardware monitoring interval in ms')
     args = parser.parse_args()
 
     # Load config if provided
@@ -449,6 +747,8 @@ def main():
         output_dir = config.get('output_dir', args.output_dir)
         skip_cpu = config.get('skip_cpu', args.skip_cpu)
         skip_cuda = config.get('skip_cuda', args.skip_cuda)
+        skip_energy = config.get('skip_energy', args.skip_energy)
+        hw_interval_ms = config.get('hw_interval_ms', args.hw_interval_ms)
     else:
         sweep_id = args.sweep_id
         project_name = args.project
@@ -460,6 +760,8 @@ def main():
         output_dir = args.output_dir
         skip_cpu = args.skip_cpu
         skip_cuda = args.skip_cuda
+        skip_energy = args.skip_energy
+        hw_interval_ms = args.hw_interval_ms
 
     # Determine devices to test
     devices = []
@@ -476,6 +778,25 @@ def main():
     print(f"Batch sizes: {batch_sizes}")
     print(f"Iterations per config: {iterations}")
 
+    # Initialize hardware monitoring (Jetson only)
+    power_monitor = None
+    hw_monitor = None
+    energy_available = False
+    
+    if HW_MONITOR_AVAILABLE and not skip_energy:
+        power_monitor = INA3221PowerMonitor()
+        if power_monitor.hwmon_path:
+            energy_available = True
+            print(f"Energy measurement enabled via INA3221")
+            # Start background monitoring for better power sampling
+            hw_monitor = TegratsMonitor(power_monitor=power_monitor, interval_ms=hw_interval_ms)
+            hw_monitor.start()
+        else:
+            print("INA3221 not found - energy measurement disabled")
+            power_monitor = None
+    else:
+        print("Energy measurement disabled or not available")
+
     # Load .env
     root_dir = Path(__file__).resolve().parent.parent.parent
     dotenv_path = root_dir / '.env'
@@ -489,7 +810,8 @@ def main():
         'batch_sizes': batch_sizes,
         'num_samples': num_samples,
         'dataset': dataset_name,
-        'devices': devices
+        'devices': devices,
+        'energy_measurement': energy_available
     })
 
     # Get runs from sweep
@@ -511,15 +833,18 @@ def main():
     print(f"Using {len(test_inputs_cpu)} test samples")
 
     # Data storage
-    # latency_data[(width, batch_size, device)] -> list of latency_per_sample values
-    latency_data = defaultdict(list)
-    # throughput_data[(width, batch_size, device)] -> list of throughput values  
-    throughput_data = defaultdict(list)
-    # per_sample_data[(width, device)] -> list of individual sample latencies
-    per_sample_data = defaultdict(list)
-    # For violin plots by width (default batch size)
+    latency_data = defaultdict(list)  # (width, batch_size, device) -> latency_per_sample values
+    throughput_data = defaultdict(list)  # (width, batch_size, device) -> throughput values
+    energy_data = defaultdict(list)  # (width, batch_size, device) -> energy_per_sample values
+    power_data = defaultdict(list)  # (width, batch_size, device) -> avg_power values
+    
+    per_sample_latency_data = defaultdict(list)  # (width, device) -> per-sample latencies
+    per_sample_energy_data = defaultdict(list)  # (width, device) -> per-sample energies
+    
+    # For violin plots by width (default batch size = 32)
     latency_by_width_cuda = defaultdict(list)
     latency_by_width_cpu = defaultdict(list)
+    energy_by_width = defaultdict(list)
     
     all_measurements = []
     
@@ -587,12 +912,36 @@ def main():
                     # Timed iterations
                     batch_latencies = []
                     batch_throughputs = []
+                    batch_energies = []
+                    batch_powers = []
                     
                     for i in range(iterations):
-                        latency_ms, n_samples = measure_inference_latency(
-                            model, test_inputs, batch_size, device
-                        )
-                        latency_per_sample = latency_ms / n_samples
+                        if energy_available and device_name == 'cuda':
+                            # Measure with energy
+                            metrics = measure_inference_with_energy(
+                                model, test_inputs, batch_size, device, 
+                                power_monitor, hw_monitor
+                            )
+                            latency_ms = metrics['latency_ms']
+                            n_samples = metrics['num_samples']
+                            latency_per_sample = metrics['latency_per_sample_ms']
+                            energy_per_sample = metrics['energy_per_sample_mj']
+                            avg_power = metrics['avg_power_mw']
+                            
+                            batch_energies.append(energy_per_sample)
+                            batch_powers.append(avg_power)
+                            
+                            energy_data[(width, batch_size, device_name)].append(energy_per_sample)
+                            power_data[(width, batch_size, device_name)].append(avg_power)
+                        else:
+                            # Measure latency only
+                            latency_ms, n_samples = measure_inference_latency(
+                                model, test_inputs, batch_size, device
+                            )
+                            latency_per_sample = latency_ms / n_samples
+                            energy_per_sample = 0
+                            avg_power = 0
+                        
                         throughput = n_samples / (latency_ms / 1000)  # samples/sec
                         
                         batch_latencies.append(latency_per_sample)
@@ -603,7 +952,7 @@ def main():
                         latency_data[key].append(latency_per_sample)
                         throughput_data[key].append(throughput)
                         
-                        all_measurements.append({
+                        measurement = {
                             'run_id': run.id,
                             'width': width,
                             'batch_size': batch_size,
@@ -613,26 +962,46 @@ def main():
                             'throughput_samples_sec': throughput,
                             'total_latency_ms': latency_ms,
                             'num_samples': n_samples
-                        })
+                        }
+                        
+                        if energy_available and device_name == 'cuda':
+                            measurement['energy_per_sample_mj'] = energy_per_sample
+                            measurement['avg_power_mw'] = avg_power
+                        
+                        all_measurements.append(measurement)
                         
                         # Log to wandb
-                        wandb.log({
+                        log_dict = {
                             'width': width,
                             'batch_size': batch_size,
                             'device': device_name,
                             'latency_per_sample_ms': latency_per_sample,
                             'throughput_samples_sec': throughput
-                        })
+                        }
+                        if energy_available and device_name == 'cuda':
+                            log_dict['energy_per_sample_mj'] = energy_per_sample
+                            log_dict['avg_power_mw'] = avg_power
+                        wandb.log(log_dict)
                     
                     mean_lat = np.mean(batch_latencies)
                     std_lat = np.std(batch_latencies)
                     mean_thr = np.mean(batch_throughputs)
-                    print(f"| Latency: {mean_lat:.4f}±{std_lat:.4f} ms | Throughput: {mean_thr:.1f} samples/sec")
+                    
+                    result_str = f"| Latency: {mean_lat:.4f}±{std_lat:.4f} ms | Throughput: {mean_thr:.1f} samples/sec"
+                    
+                    if batch_energies:
+                        mean_energy = np.mean(batch_energies)
+                        std_energy = np.std(batch_energies)
+                        result_str += f" | Energy: {mean_energy:.4f}±{std_energy:.4f} mJ"
+                    
+                    print(result_str)
                     
                     # Store for violin plots (use batch_size=32 as default)
                     if batch_size == 32:
                         if device_name == 'cuda':
                             latency_by_width_cuda[width].extend(batch_latencies)
+                            if batch_energies:
+                                energy_by_width[width].extend(batch_energies)
                         else:
                             latency_by_width_cpu[width].extend(batch_latencies)
                             
@@ -651,15 +1020,34 @@ def main():
                 per_sample_latencies = measure_per_sample_latencies(
                     model, test_inputs, device, max_samples=per_sample_count
                 )
-                per_sample_data[(width, device_name)].extend(per_sample_latencies)
+                per_sample_latency_data[(width, device_name)].extend(per_sample_latencies)
                 print(f"Mean: {np.mean(per_sample_latencies):.4f} ms")
             except Exception as e:
                 print(f"Error: {e}")
+            
+            # Per-sample energy measurement (GPU only, if available)
+            if energy_available and device_name == 'cuda':
+                print(f"    Measuring per-sample energy ({min(per_sample_count, 50)} samples)...", end=" ")
+                try:
+                    per_sample_energies, _ = measure_per_sample_energy(
+                        model, test_inputs, device, power_monitor, max_samples=min(per_sample_count, 50)
+                    )
+                    if per_sample_energies:
+                        per_sample_energy_data[(width, device_name)].extend(per_sample_energies)
+                        print(f"Mean: {np.mean(per_sample_energies):.4f} mJ")
+                    else:
+                        print("No data")
+                except Exception as e:
+                    print(f"Error: {e}")
             
             # Clean up
             del model
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
+
+    # Stop hardware monitoring
+    if hw_monitor:
+        hw_monitor.stop()
 
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
@@ -674,7 +1062,7 @@ def main():
     stats_data = []
     for (width, batch_size, device_name), latencies in sorted(latency_data.items()):
         throughputs = throughput_data[(width, batch_size, device_name)]
-        stats_data.append({
+        stats_entry = {
             'width': width,
             'batch_size': batch_size,
             'device': device_name,
@@ -687,7 +1075,23 @@ def main():
             'throughput_mean': np.mean(throughputs),
             'throughput_std': np.std(throughputs),
             'n_measurements': len(latencies)
-        })
+        }
+        
+        # Add energy stats if available
+        energy_key = (width, batch_size, device_name)
+        if energy_key in energy_data and energy_data[energy_key]:
+            energies = energy_data[energy_key]
+            stats_entry['energy_mean_mj'] = np.mean(energies)
+            stats_entry['energy_std_mj'] = np.std(energies)
+            stats_entry['energy_min_mj'] = np.min(energies)
+            stats_entry['energy_max_mj'] = np.max(energies)
+            
+            powers = power_data.get(energy_key, [])
+            if powers:
+                stats_entry['power_mean_mw'] = np.mean(powers)
+                stats_entry['power_std_mw'] = np.std(powers)
+        
+        stats_data.append(stats_entry)
     
     stats_df = pd.DataFrame(stats_data)
     stats_path = os.path.join(output_dir, 'latency_stats.csv')
@@ -707,31 +1111,59 @@ def main():
     violin_path = os.path.join(output_dir, 'violin_latency_by_width.png')
     create_violin_plot_comparison(latency_by_width_cuda, latency_by_width_cpu, violin_path)
     
-    # 2. Throughput vs batch size
+    # 2. Violin plot for energy (GPU only)
+    if energy_by_width:
+        violin_energy_path = os.path.join(output_dir, 'violin_energy_by_width.png')
+        create_single_violin_plot(energy_by_width, violin_energy_path, 
+                                  ylabel='Energy per Sample (mJ)',
+                                  title='Energy Distribution by Width (GPU, batch_size=32)',
+                                  color='#9b59b6')
+    
+    # 3. Throughput vs batch size
     throughput_path = os.path.join(output_dir, 'throughput_vs_batchsize.png')
     create_throughput_plot(throughput_data, throughput_path)
     
-    # 3. Speedup heatmap
+    # 4. Energy vs batch size (if available)
+    if energy_data:
+        energy_plot_path = os.path.join(output_dir, 'energy_vs_batchsize.png')
+        create_energy_plot(energy_data, energy_plot_path)
+    
+    # 5. Speedup heatmap
     speedup_path = os.path.join(output_dir, 'speedup_heatmap.png')
     create_speedup_heatmap(latency_data, speedup_path)
     
-    # 4. Per-sample histogram
-    if per_sample_data:
+    # 6. Energy heatmap (if available)
+    if energy_data:
+        energy_hm_path = os.path.join(output_dir, 'energy_heatmap.png')
+        create_energy_heatmap(energy_data, energy_hm_path)
+    
+    # 7. Per-sample histogram
+    if per_sample_latency_data:
         histogram_path = os.path.join(output_dir, 'per_sample_histogram.png')
-        create_per_sample_histogram(per_sample_data, histogram_path)
+        create_per_sample_histogram(per_sample_latency_data, histogram_path)
 
     # Log plots to wandb
-    wandb.log({
-        'violin_plot': wandb.Image(violin_path),
-        'throughput_plot': wandb.Image(throughput_path),
-        'speedup_heatmap': wandb.Image(speedup_path),
-        'latency_stats_table': wandb.Table(dataframe=stats_df)
-    })
+    plots_to_log = {
+        'violin_latency_plot': violin_path,
+        'throughput_plot': throughput_path,
+        'speedup_heatmap': speedup_path,
+    }
     
-    if per_sample_data:
-        histogram_path = os.path.join(output_dir, 'per_sample_histogram.png')
-        if os.path.exists(histogram_path):
-            wandb.log({'per_sample_histogram': wandb.Image(histogram_path)})
+    if energy_by_width:
+        plots_to_log['violin_energy_plot'] = os.path.join(output_dir, 'violin_energy_by_width.png')
+    if energy_data:
+        plots_to_log['energy_plot'] = os.path.join(output_dir, 'energy_vs_batchsize.png')
+        plots_to_log['energy_heatmap'] = os.path.join(output_dir, 'energy_heatmap.png')
+    if per_sample_latency_data:
+        plots_to_log['per_sample_latency_histogram'] = os.path.join(output_dir, 'per_sample_histogram.png')
+    if per_sample_energy_data:
+        plots_to_log['per_sample_energy_histogram'] = os.path.join(output_dir, 'per_sample_energy_histogram.png')
+    
+    for name, path in plots_to_log.items():
+        if os.path.exists(path):
+            wandb.log({name: wandb.Image(path)})
+    
+    wandb.log({'latency_stats_table': wandb.Table(dataframe=stats_df)})
 
     wandb.finish()
     print("\nDone!")

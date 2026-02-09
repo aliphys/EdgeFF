@@ -23,8 +23,8 @@ iterations: 50
 batch_sizes: [1, 8, 32, 128, 512]
 
 # Number of test samples to use for batch inference
-# Smaller = faster, larger = more representative
-num_samples: 1000
+# Set to -1 or a large number to use the full test set (MNIST=10000)
+num_samples: 10000
 
 # Number of individual samples to measure for per-sample latency histogram
 # These are measured at batch_size=1
@@ -36,6 +36,16 @@ per_sample_count: 100
 # Set to true to skip that device (useful for faster testing)
 skip_cpu: false
 skip_cuda: false
+
+# ----------------------------------------------------------------------------
+# Energy Settings (Jetson only)
+# ----------------------------------------------------------------------------
+# Set to true to skip energy measurement (even if available on Jetson)
+skip_energy: false
+
+# Hardware monitoring interval in milliseconds (for power sampling)
+# Lower values = more accurate energy calculation, but higher overhead
+hw_interval_ms: 100
 
 # ----------------------------------------------------------------------------
 # Output Settings

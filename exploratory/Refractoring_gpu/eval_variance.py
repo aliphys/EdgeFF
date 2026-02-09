@@ -164,7 +164,8 @@ def measure_inference_latency(model, inputs, batch_size, device):
 
 def measure_inference_with_energy(model, inputs, batch_size, device, power_monitor, hw_monitor=None):
     """
-    Measure inference latency AND energy consumption.
+    Measure inference latency AND energy consumption for all three power rails.
+    Works for both CPU and GPU inference.
     
     Args:
         model: The model to evaluate
@@ -175,9 +176,15 @@ def measure_inference_with_energy(model, inputs, batch_size, device, power_monit
         hw_monitor: TegratsMonitor instance (optional, for background sampling)
     
     Returns:
-        dict with latency_ms, num_samples, energy_mj, avg_power_mw
+        dict with latency_ms, num_samples, and energy/power for each rail:
+        - VDD_IN: Total system power
+        - VDD_CPU_GPU_CV: CPU/GPU/CV power  
+        - VDD_SOC: SoC power
     """
     num_samples = len(inputs)
+    
+    # Power rail names
+    rails = ['VDD_IN', 'VDD_CPU_GPU_CV', 'VDD_SOC']
     
     # Start inference measurement if using TegratsMonitor
     if hw_monitor:
@@ -212,27 +219,38 @@ def measure_inference_with_energy(model, inputs, batch_size, device, power_monit
     latency_ms = (end_time - start_time) * 1000
     latency_s = latency_ms / 1000.0
     
-    # Calculate energy if we have power readings
-    if power_before and power_after:
-        # Use average of before/after power readings
-        power_mw = (power_before.get('VDD_IN_power_mw', 0) + power_after.get('VDD_IN_power_mw', 0)) / 2
-        energy_mj = power_mw * latency_s  # mW * s = mJ
-    elif energy_metrics:
-        # Use TegratsMonitor's calculated metrics
-        power_mw = energy_metrics.get('inference/avg_power_during_inference_mw', 0)
-        energy_mj = energy_metrics.get('inference/total_batch_energy_mj', 0)
-    else:
-        power_mw = 0
-        energy_mj = 0
-    
-    return {
+    result = {
         'latency_ms': latency_ms,
         'num_samples': num_samples,
-        'energy_mj': energy_mj,
-        'avg_power_mw': power_mw,
-        'energy_per_sample_mj': energy_mj / num_samples if num_samples > 0 else 0,
         'latency_per_sample_ms': latency_ms / num_samples if num_samples > 0 else 0
     }
+    
+    # Calculate energy for each power rail
+    total_energy_mj = 0
+    for rail in rails:
+        power_key = f'{rail}_power_mw'
+        if power_before and power_after and power_key in power_before and power_key in power_after:
+            # Use average of before/after power readings
+            avg_power_mw = (power_before[power_key] + power_after[power_key]) / 2
+            energy_mj = avg_power_mw * latency_s  # mW * s = mJ
+            
+            result[f'{rail}_power_mw'] = avg_power_mw
+            result[f'{rail}_energy_mj'] = energy_mj
+            result[f'{rail}_energy_per_sample_mj'] = energy_mj / num_samples if num_samples > 0 else 0
+            
+            if rail == 'VDD_IN':
+                total_energy_mj = energy_mj
+        else:
+            result[f'{rail}_power_mw'] = 0
+            result[f'{rail}_energy_mj'] = 0
+            result[f'{rail}_energy_per_sample_mj'] = 0
+    
+    # Keep backward compatible fields using VDD_IN as the main energy metric
+    result['energy_mj'] = total_energy_mj
+    result['avg_power_mw'] = result.get('VDD_IN_power_mw', 0)
+    result['energy_per_sample_mj'] = total_energy_mj / num_samples if num_samples > 0 else 0
+    
+    return result
 
 
 def measure_per_sample_latencies(model, inputs, device, max_samples=100):
@@ -278,18 +296,20 @@ def measure_per_sample_latencies(model, inputs, device, max_samples=100):
 
 def measure_per_sample_energy(model, inputs, device, power_monitor, max_samples=50):
     """
-    Measure energy for individual samples (batch_size=1).
-    Returns list of per-sample energy in millijoules.
+    Measure energy for individual samples (batch_size=1) across all power rails.
+    Returns dict with per-sample energy for each rail.
     
     Note: Energy measurement at batch_size=1 has high variance due to
     power sensor sampling rate. Use larger sample counts for better estimates.
     """
-    per_sample_energies = []
-    per_sample_powers = []
+    rails = ['VDD_IN', 'VDD_CPU_GPU_CV', 'VDD_SOC']
+    per_sample_data = {rail: [] for rail in rails}
+    per_sample_data['powers'] = {rail: [] for rail in rails}
+    
     num_samples = min(len(inputs), max_samples)
     
     if not power_monitor:
-        return [], []
+        return per_sample_data
     
     # Warmup run (discarded)
     with torch.no_grad():
@@ -320,13 +340,17 @@ def measure_per_sample_energy(model, inputs, device, power_monitor, max_samples=
         power_after = power_monitor.get_power_metrics()
         
         latency_s = end_time - start_time
-        avg_power_mw = (power_before.get('VDD_IN_power_mw', 0) + power_after.get('VDD_IN_power_mw', 0)) / 2
-        energy_mj = avg_power_mw * latency_s
         
-        per_sample_energies.append(energy_mj)
-        per_sample_powers.append(avg_power_mw)
+        # Calculate energy for each rail
+        for rail in rails:
+            power_key = f'{rail}_power_mw'
+            if power_key in power_before and power_key in power_after:
+                avg_power_mw = (power_before[power_key] + power_after[power_key]) / 2
+                energy_mj = avg_power_mw * latency_s
+                per_sample_data[rail].append(energy_mj)
+                per_sample_data['powers'][rail].append(avg_power_mw)
     
-    return per_sample_energies, per_sample_powers
+    return per_sample_data
 
 
 def create_violin_plot_comparison(data_cuda, data_cpu, output_path):
@@ -600,26 +624,34 @@ def create_single_violin_plot(data_by_width, output_path, ylabel='Energy per Sam
     print(f"Saved violin plot to: {output_path}")
 
 
-def create_energy_plot(energy_data, output_path):
+def create_energy_plot(energy_data, output_path, rail='VDD_IN'):
     """
-    Create energy per sample vs batch size plot for each width.
+    Create energy per sample vs batch size plot for each width, comparing CUDA and CPU.
     
-    energy_data: dict[(width, batch_size, device)] -> list of energy_per_sample values
+    energy_data: dict[(width, batch_size, device, rail)] -> list of energy_per_sample values
     """
-    # Organize data (GPU only for energy)
-    plot_data = defaultdict(dict)
+    # Organize data for both devices
+    plot_data = defaultdict(lambda: {'cuda': {}, 'cpu': {}})
     
-    for (width, batch_size, device), energies in energy_data.items():
-        if device == 'cuda':  # Energy is only meaningful for GPU on Jetson
+    for key, energies in energy_data.items():
+        if len(key) == 4:
+            width, batch_size, device, data_rail = key
+            if data_rail == rail:
+                mean_energy = np.mean(energies)
+                std_energy = np.std(energies)
+                plot_data[width][device][batch_size] = (mean_energy, std_energy)
+        elif len(key) == 3:
+            # Backward compatibility: (width, batch_size, device)
+            width, batch_size, device = key
             mean_energy = np.mean(energies)
             std_energy = np.std(energies)
-            plot_data[width][batch_size] = (mean_energy, std_energy)
+            plot_data[width][device][batch_size] = (mean_energy, std_energy)
     
     widths = sorted(plot_data.keys())
     n_widths = len(widths)
     
     if n_widths == 0:
-        print("No energy data for plot")
+        print(f"No energy data for plot ({rail})")
         return
     
     # Create subplot for each width
@@ -631,17 +663,27 @@ def create_energy_plot(energy_data, output_path):
         row, col = idx // cols, idx % cols
         ax = axes[row, col]
         
-        if plot_data[width]:
-            batch_sizes = sorted(plot_data[width].keys())
-            means = [plot_data[width][bs][0] for bs in batch_sizes]
-            stds = [plot_data[width][bs][1] for bs in batch_sizes]
-            ax.errorbar(batch_sizes, means, yerr=stds, marker='o', 
-                       color='#9b59b6', capsize=3, linewidth=2)
+        # CUDA data
+        if plot_data[width]['cuda']:
+            batch_sizes = sorted(plot_data[width]['cuda'].keys())
+            means = [plot_data[width]['cuda'][bs][0] for bs in batch_sizes]
+            stds = [plot_data[width]['cuda'][bs][1] for bs in batch_sizes]
+            ax.errorbar(batch_sizes, means, yerr=stds, marker='o', label='CUDA',
+                       color='#2ecc71', capsize=3, linewidth=2)
+        
+        # CPU data
+        if plot_data[width]['cpu']:
+            batch_sizes = sorted(plot_data[width]['cpu'].keys())
+            means = [plot_data[width]['cpu'][bs][0] for bs in batch_sizes]
+            stds = [plot_data[width]['cpu'][bs][1] for bs in batch_sizes]
+            ax.errorbar(batch_sizes, means, yerr=stds, marker='s', label='CPU',
+                       color='#e74c3c', capsize=3, linewidth=2)
         
         ax.set_xlabel('Batch Size')
         ax.set_ylabel('Energy per Sample (mJ)')
         ax.set_title(f'Width: {width}')
         ax.set_xscale('log', base=2)
+        ax.legend()
         ax.grid(True, linestyle='--', alpha=0.7)
     
     # Hide empty subplots
@@ -649,30 +691,92 @@ def create_energy_plot(energy_data, output_path):
         row, col = idx // cols, idx % cols
         axes[row, col].set_visible(False)
     
-    plt.suptitle('Energy per Sample vs Batch Size by Network Width (GPU)', fontsize=14)
+    plt.suptitle(f'Energy per Sample vs Batch Size ({rail})', fontsize=14)
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
     print(f"Saved energy plot to: {output_path}")
 
 
-def create_energy_heatmap(energy_data, output_path):
+def create_energy_comparison_plot(energy_data_by_rail, output_path):
     """
-    Create heatmap showing energy per sample by width and batch size.
+    Create a comparison plot showing all three power rails for both CUDA and CPU.
+    
+    energy_data_by_rail: dict[rail] -> dict[(width, batch_size, device)] -> list of values
     """
-    # Get all widths and batch sizes (GPU only)
+    rails = ['VDD_IN', 'VDD_CPU_GPU_CV', 'VDD_SOC']
+    rail_colors = {'VDD_IN': '#3498db', 'VDD_CPU_GPU_CV': '#e74c3c', 'VDD_SOC': '#2ecc71'}
+    
+    # Get all widths
+    all_widths = set()
+    for rail_data in energy_data_by_rail.values():
+        for key in rail_data.keys():
+            all_widths.add(key[0])
+    widths = sorted(all_widths)
+    
+    if not widths:
+        print("No data for energy comparison plot")
+        return
+    
+    # Create figure with subplots for CUDA and CPU
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    
+    for ax_idx, device in enumerate(['cuda', 'cpu']):
+        ax = axes[ax_idx]
+        
+        for rail in rails:
+            if rail not in energy_data_by_rail:
+                continue
+            
+            rail_data = energy_data_by_rail[rail]
+            
+            # Get mean energy per width at batch_size=32
+            width_energies = []
+            valid_widths = []
+            for width in widths:
+                key = (width, 32, device)
+                if key in rail_data and rail_data[key]:
+                    width_energies.append(np.mean(rail_data[key]))
+                    valid_widths.append(width)
+            
+            if valid_widths:
+                ax.plot(range(len(valid_widths)), width_energies, 'o-', 
+                       label=rail, color=rail_colors[rail], linewidth=2, markersize=8)
+        
+        ax.set_xticks(range(len(widths)))
+        ax.set_xticklabels([str(w) for w in widths])
+        ax.set_xlabel('Network Width')
+        ax.set_ylabel('Energy per Sample (mJ)')
+        ax.set_title(f'{device.upper()} - Power Rails Comparison (batch_size=32)')
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.7)
+    
+    plt.suptitle('Energy Consumption by Power Rail', fontsize=14)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Saved energy comparison plot to: {output_path}")
+
+
+def create_energy_heatmap(energy_data, output_path, device='cuda', rail='VDD_IN'):
+    """
+    Create heatmap showing energy per sample by width and batch size for a specific device and rail.
+    """
+    # Get all widths and batch sizes for specified device
     widths = set()
     batch_sizes = set()
-    for (width, batch_size, device) in energy_data.keys():
-        if device == 'cuda':
-            widths.add(width)
-            batch_sizes.add(batch_size)
+    for key in energy_data.keys():
+        if len(key) >= 3:
+            w, bs, dev = key[0], key[1], key[2]
+            if dev == device:
+                widths.add(w)
+                batch_sizes.add(bs)
     
     widths = sorted(widths)
     batch_sizes = sorted(batch_sizes)
     
     if not widths or not batch_sizes:
-        print("No data for energy heatmap")
+        print(f"No data for energy heatmap ({device}, {rail})")
         return
     
     # Build energy matrix
@@ -680,8 +784,8 @@ def create_energy_heatmap(energy_data, output_path):
     
     for i, width in enumerate(widths):
         for j, batch_size in enumerate(batch_sizes):
-            key = (width, batch_size, 'cuda')
-            if key in energy_data:
+            key = (width, batch_size, device)
+            if key in energy_data and energy_data[key]:
                 energy_matrix[i, j] = np.mean(energy_data[key])
     
     # Create heatmap
@@ -701,7 +805,7 @@ def create_energy_heatmap(energy_data, output_path):
     
     ax.set_xlabel('Batch Size')
     ax.set_ylabel('Network Width')
-    ax.set_title('Energy per Sample by Width and Batch Size (GPU)')
+    ax.set_title(f'Energy per Sample ({device.upper()}, {rail})')
     
     # Add text annotations
     for i in range(len(widths)):
@@ -835,16 +939,19 @@ def main():
     # Data storage
     latency_data = defaultdict(list)  # (width, batch_size, device) -> latency_per_sample values
     throughput_data = defaultdict(list)  # (width, batch_size, device) -> throughput values
-    energy_data = defaultdict(list)  # (width, batch_size, device) -> energy_per_sample values
-    power_data = defaultdict(list)  # (width, batch_size, device) -> avg_power values
+    
+    # Energy data organized by power rail
+    rails = ['VDD_IN', 'VDD_CPU_GPU_CV', 'VDD_SOC']
+    energy_data = {rail: defaultdict(list) for rail in rails}  # rail -> (width, batch_size, device) -> values
+    power_data = {rail: defaultdict(list) for rail in rails}  # rail -> (width, batch_size, device) -> values
     
     per_sample_latency_data = defaultdict(list)  # (width, device) -> per-sample latencies
-    per_sample_energy_data = defaultdict(list)  # (width, device) -> per-sample energies
+    per_sample_energy_data = {rail: defaultdict(list) for rail in rails}  # rail -> (width, device) -> values
     
     # For violin plots by width (default batch size = 32)
     latency_by_width_cuda = defaultdict(list)
     latency_by_width_cpu = defaultdict(list)
-    energy_by_width = defaultdict(list)
+    energy_by_width = {rail: defaultdict(list) for rail in rails}  # rail -> width -> values
     
     all_measurements = []
     
@@ -912,12 +1019,12 @@ def main():
                     # Timed iterations
                     batch_latencies = []
                     batch_throughputs = []
-                    batch_energies = []
-                    batch_powers = []
+                    batch_energies = {rail: [] for rail in rails}
+                    batch_powers = {rail: [] for rail in rails}
                     
                     for i in range(iterations):
-                        if energy_available and device_name == 'cuda':
-                            # Measure with energy
+                        if energy_available:
+                            # Measure with energy (for both CPU and GPU)
                             metrics = measure_inference_with_energy(
                                 model, test_inputs, batch_size, device, 
                                 power_monitor, hw_monitor
@@ -925,22 +1032,22 @@ def main():
                             latency_ms = metrics['latency_ms']
                             n_samples = metrics['num_samples']
                             latency_per_sample = metrics['latency_per_sample_ms']
-                            energy_per_sample = metrics['energy_per_sample_mj']
-                            avg_power = metrics['avg_power_mw']
                             
-                            batch_energies.append(energy_per_sample)
-                            batch_powers.append(avg_power)
-                            
-                            energy_data[(width, batch_size, device_name)].append(energy_per_sample)
-                            power_data[(width, batch_size, device_name)].append(avg_power)
+                            # Store energy for each rail
+                            for rail in rails:
+                                energy_key = f'{rail}_energy_per_sample_mj'
+                                power_key = f'{rail}_power_mw'
+                                if energy_key in metrics:
+                                    batch_energies[rail].append(metrics[energy_key])
+                                    batch_powers[rail].append(metrics[power_key])
+                                    energy_data[rail][(width, batch_size, device_name)].append(metrics[energy_key])
+                                    power_data[rail][(width, batch_size, device_name)].append(metrics[power_key])
                         else:
                             # Measure latency only
                             latency_ms, n_samples = measure_inference_latency(
                                 model, test_inputs, batch_size, device
                             )
                             latency_per_sample = latency_ms / n_samples
-                            energy_per_sample = 0
-                            avg_power = 0
                         
                         throughput = n_samples / (latency_ms / 1000)  # samples/sec
                         
@@ -964,9 +1071,13 @@ def main():
                             'num_samples': n_samples
                         }
                         
-                        if energy_available and device_name == 'cuda':
-                            measurement['energy_per_sample_mj'] = energy_per_sample
-                            measurement['avg_power_mw'] = avg_power
+                        if energy_available:
+                            for rail in rails:
+                                energy_key = f'{rail}_energy_per_sample_mj'
+                                power_key = f'{rail}_power_mw'
+                                if energy_key in metrics:
+                                    measurement[f'{rail}_energy_mj'] = metrics[energy_key]
+                                    measurement[f'{rail}_power_mw'] = metrics[power_key]
                         
                         all_measurements.append(measurement)
                         
@@ -978,9 +1089,13 @@ def main():
                             'latency_per_sample_ms': latency_per_sample,
                             'throughput_samples_sec': throughput
                         }
-                        if energy_available and device_name == 'cuda':
-                            log_dict['energy_per_sample_mj'] = energy_per_sample
-                            log_dict['avg_power_mw'] = avg_power
+                        if energy_available:
+                            for rail in rails:
+                                energy_key = f'{rail}_energy_per_sample_mj'
+                                power_key = f'{rail}_power_mw'
+                                if energy_key in metrics:
+                                    log_dict[f'{rail}_energy_mj'] = metrics[energy_key]
+                                    log_dict[f'{rail}_power_mw'] = metrics[power_key]
                         wandb.log(log_dict)
                     
                     mean_lat = np.mean(batch_latencies)
@@ -989,10 +1104,14 @@ def main():
                     
                     result_str = f"| Latency: {mean_lat:.4f}±{std_lat:.4f} ms | Throughput: {mean_thr:.1f} samples/sec"
                     
-                    if batch_energies:
-                        mean_energy = np.mean(batch_energies)
-                        std_energy = np.std(batch_energies)
-                        result_str += f" | Energy: {mean_energy:.4f}±{std_energy:.4f} mJ"
+                    if batch_energies['VDD_IN']:
+                        mean_energy = np.mean(batch_energies['VDD_IN'])
+                        std_energy = np.std(batch_energies['VDD_IN'])
+                        result_str += f" | VDD_IN: {mean_energy:.4f}±{std_energy:.4f} mJ"
+                        # Also show CPU/GPU rail
+                        if batch_energies['VDD_CPU_GPU_CV']:
+                            mean_cpugpu = np.mean(batch_energies['VDD_CPU_GPU_CV'])
+                            result_str += f" | CPU_GPU: {mean_cpugpu:.4f} mJ"
                     
                     print(result_str)
                     
@@ -1000,10 +1119,13 @@ def main():
                     if batch_size == 32:
                         if device_name == 'cuda':
                             latency_by_width_cuda[width].extend(batch_latencies)
-                            if batch_energies:
-                                energy_by_width[width].extend(batch_energies)
                         else:
                             latency_by_width_cpu[width].extend(batch_latencies)
+                        
+                        # Store energy for all rails
+                        for rail in rails:
+                            if batch_energies[rail]:
+                                energy_by_width[rail][width].extend(batch_energies[rail])
                             
                 except RuntimeError as e:
                     if "out of memory" in str(e).lower():
@@ -1025,16 +1147,19 @@ def main():
             except Exception as e:
                 print(f"Error: {e}")
             
-            # Per-sample energy measurement (GPU only, if available)
-            if energy_available and device_name == 'cuda':
+            # Per-sample energy measurement (for both CPU and GPU, if available)
+            if energy_available:
                 print(f"    Measuring per-sample energy ({min(per_sample_count, 50)} samples)...", end=" ")
                 try:
-                    per_sample_energies, _ = measure_per_sample_energy(
+                    per_sample_result = measure_per_sample_energy(
                         model, test_inputs, device, power_monitor, max_samples=min(per_sample_count, 50)
                     )
-                    if per_sample_energies:
-                        per_sample_energy_data[(width, device_name)].extend(per_sample_energies)
-                        print(f"Mean: {np.mean(per_sample_energies):.4f} mJ")
+                    if per_sample_result['VDD_IN']:
+                        for rail in rails:
+                            if per_sample_result[rail]:
+                                per_sample_energy_data[rail][(width, device_name)].extend(per_sample_result[rail])
+                        mean_vdd_in = np.mean(per_sample_result['VDD_IN'])
+                        print(f"Mean VDD_IN: {mean_vdd_in:.4f} mJ")
                     else:
                         print("No data")
                 except Exception as e:
@@ -1077,19 +1202,20 @@ def main():
             'n_measurements': len(latencies)
         }
         
-        # Add energy stats if available
+        # Add energy stats for each rail if available
         energy_key = (width, batch_size, device_name)
-        if energy_key in energy_data and energy_data[energy_key]:
-            energies = energy_data[energy_key]
-            stats_entry['energy_mean_mj'] = np.mean(energies)
-            stats_entry['energy_std_mj'] = np.std(energies)
-            stats_entry['energy_min_mj'] = np.min(energies)
-            stats_entry['energy_max_mj'] = np.max(energies)
-            
-            powers = power_data.get(energy_key, [])
-            if powers:
-                stats_entry['power_mean_mw'] = np.mean(powers)
-                stats_entry['power_std_mw'] = np.std(powers)
+        for rail in rails:
+            if energy_key in energy_data[rail] and energy_data[rail][energy_key]:
+                energies = energy_data[rail][energy_key]
+                stats_entry[f'{rail}_energy_mean_mj'] = np.mean(energies)
+                stats_entry[f'{rail}_energy_std_mj'] = np.std(energies)
+                stats_entry[f'{rail}_energy_min_mj'] = np.min(energies)
+                stats_entry[f'{rail}_energy_max_mj'] = np.max(energies)
+                
+                powers = power_data[rail].get(energy_key, [])
+                if powers:
+                    stats_entry[f'{rail}_power_mean_mw'] = np.mean(powers)
+                    stats_entry[f'{rail}_power_std_mw'] = np.std(powers)
         
         stats_data.append(stats_entry)
     
@@ -1107,37 +1233,46 @@ def main():
     # Create plots
     print("\nGenerating plots...")
     
-    # 1. Violin plot comparison
+    # 1. Violin plot comparison (latency)
     violin_path = os.path.join(output_dir, 'violin_latency_by_width.png')
     create_violin_plot_comparison(latency_by_width_cuda, latency_by_width_cpu, violin_path)
     
-    # 2. Violin plot for energy (GPU only)
-    if energy_by_width:
-        violin_energy_path = os.path.join(output_dir, 'violin_energy_by_width.png')
-        create_single_violin_plot(energy_by_width, violin_energy_path, 
-                                  ylabel='Energy per Sample (mJ)',
-                                  title='Energy Distribution by Width (GPU, batch_size=32)',
-                                  color='#9b59b6')
+    # 2. Violin plots for energy by rail
+    for rail in rails:
+        if energy_by_width[rail]:
+            violin_energy_path = os.path.join(output_dir, f'violin_energy_{rail}_by_width.png')
+            create_single_violin_plot(energy_by_width[rail], violin_energy_path, 
+                                      ylabel='Energy per Sample (mJ)',
+                                      title=f'{rail} Energy Distribution by Width (batch_size=32)',
+                                      color='#9b59b6' if rail == 'VDD_IN' else '#e74c3c' if rail == 'VDD_CPU_GPU_CV' else '#2ecc71')
     
     # 3. Throughput vs batch size
     throughput_path = os.path.join(output_dir, 'throughput_vs_batchsize.png')
     create_throughput_plot(throughput_data, throughput_path)
     
-    # 4. Energy vs batch size (if available)
-    if energy_data:
-        energy_plot_path = os.path.join(output_dir, 'energy_vs_batchsize.png')
-        create_energy_plot(energy_data, energy_plot_path)
+    # 4. Energy vs batch size for each rail (comparing CPU and GPU)
+    for rail in rails:
+        if energy_data[rail]:
+            energy_plot_path = os.path.join(output_dir, f'energy_{rail}_vs_batchsize.png')
+            create_energy_plot(energy_data[rail], energy_plot_path, rail=rail)
     
-    # 5. Speedup heatmap
+    # 5. Energy comparison plot (all three rails side by side)
+    if any(energy_data[rail] for rail in rails):
+        comparison_path = os.path.join(output_dir, 'energy_rails_comparison.png')
+        create_energy_comparison_plot(energy_data, comparison_path)
+    
+    # 6. Speedup heatmap
     speedup_path = os.path.join(output_dir, 'speedup_heatmap.png')
     create_speedup_heatmap(latency_data, speedup_path)
     
-    # 6. Energy heatmap (if available)
-    if energy_data:
-        energy_hm_path = os.path.join(output_dir, 'energy_heatmap.png')
-        create_energy_heatmap(energy_data, energy_hm_path)
+    # 7. Energy heatmaps for each rail and device
+    for rail in rails:
+        if energy_data[rail]:
+            for device in ['cuda', 'cpu']:
+                energy_hm_path = os.path.join(output_dir, f'energy_heatmap_{rail}_{device}.png')
+                create_energy_heatmap(energy_data[rail], energy_hm_path, device=device, rail=rail)
     
-    # 7. Per-sample histogram
+    # 8. Per-sample histogram
     if per_sample_latency_data:
         histogram_path = os.path.join(output_dir, 'per_sample_histogram.png')
         create_per_sample_histogram(per_sample_latency_data, histogram_path)
@@ -1149,15 +1284,18 @@ def main():
         'speedup_heatmap': speedup_path,
     }
     
-    if energy_by_width:
-        plots_to_log['violin_energy_plot'] = os.path.join(output_dir, 'violin_energy_by_width.png')
-    if energy_data:
-        plots_to_log['energy_plot'] = os.path.join(output_dir, 'energy_vs_batchsize.png')
-        plots_to_log['energy_heatmap'] = os.path.join(output_dir, 'energy_heatmap.png')
+    # Add energy plots by rail
+    for rail in rails:
+        if energy_by_width[rail]:
+            plots_to_log[f'violin_energy_{rail}'] = os.path.join(output_dir, f'violin_energy_{rail}_by_width.png')
+        if energy_data[rail]:
+            plots_to_log[f'energy_{rail}_plot'] = os.path.join(output_dir, f'energy_{rail}_vs_batchsize.png')
+    
+    if any(energy_data[rail] for rail in rails):
+        plots_to_log['energy_rails_comparison'] = os.path.join(output_dir, 'energy_rails_comparison.png')
+    
     if per_sample_latency_data:
         plots_to_log['per_sample_latency_histogram'] = os.path.join(output_dir, 'per_sample_histogram.png')
-    if per_sample_energy_data:
-        plots_to_log['per_sample_energy_histogram'] = os.path.join(output_dir, 'per_sample_energy_histogram.png')
     
     for name, path in plots_to_log.items():
         if os.path.exists(path):

@@ -95,6 +95,10 @@ def load_model_to_device(model_path, device, onehot_max_value, is_color):
     """
     Load model fresh to specified device.
     Returns a new model instance on the target device.
+    
+    Note: We don't call model.eval() because the Net class overrides train()
+    with a custom method for Forward-Forward training. The FF network doesn't
+    use dropout or batch normalization, so eval mode isn't needed.
     """
     model = torch.load(model_path, map_location=device, weights_only=False)
     
@@ -106,7 +110,7 @@ def load_model_to_device(model_path, device, onehot_max_value, is_color):
         softmax_layer.to(device)
     model.onehot_max_value = onehot_max_value
     model.is_color = is_color
-    model.eval()
+    # Note: Don't call model.eval() - Net.train() is overridden for FF training
     
     return model
 

@@ -1,0 +1,43 @@
+# ============================================================================
+# Variance Evaluation Configuration - GPU/CPU Comparison
+# ============================================================================
+# This config specifies parameters for inference variance analysis with
+# both CUDA and CPU evaluation, per-sample latency, and throughput metrics.
+#
+# Usage: python eval_variance.py --config eval_variance_config.yaml
+# ============================================================================
+
+project: edgeff-network-width       # W&B project name
+sweep_id: 9xqabsi3                   # Sweep containing trained models
+
+dataset: MNIST                      # Dataset for evaluation (MNIST|FMNIST|SVHN|CIFAR10)
+
+# ----------------------------------------------------------------------------
+# Iteration Settings
+# ----------------------------------------------------------------------------
+# Number of inference iterations per (width, batch_size, device) combination
+# More iterations = better statistics, but longer runtime
+iterations: 50
+
+# Batch sizes to test (throughput varies with batch size)
+batch_sizes: [1, 8, 32, 128, 512]
+
+# Number of test samples to use for batch inference
+# Smaller = faster, larger = more representative
+num_samples: 1000
+
+# Number of individual samples to measure for per-sample latency histogram
+# These are measured at batch_size=1
+per_sample_count: 100
+
+# ----------------------------------------------------------------------------
+# Device Settings
+# ----------------------------------------------------------------------------
+# Set to true to skip that device (useful for faster testing)
+skip_cpu: false
+skip_cuda: false
+
+# ----------------------------------------------------------------------------
+# Output Settings
+# ----------------------------------------------------------------------------
+output_dir: "."                     # Directory for plots and CSV files

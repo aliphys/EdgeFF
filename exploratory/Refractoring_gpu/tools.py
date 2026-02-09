@@ -1,3 +1,27 @@
+"""
+tools.py - Analysis Utilities for Forward-Forward Networks
+==========================================================
+
+This module provides analysis utilities for computing confidence statistics
+used in early-exit inference decisions.
+
+Functions:
+    analysis_val_set(model, inputs, targets)
+        Compute per-layer confidence statistics (mean/std) for early-exit
+        thresholds. Returns (mean_per_layer, std_per_layer).
+        
+        The early-exit threshold for layer i is: mean[i] - std[i]
+        If max(softmax_output) > threshold, exit early with that prediction.
+    
+    calculate_goodness_distributions(matrix, predictions, targets, num_layers)
+        Calculate per-class goodness statistics for analysis.
+        Computes mean/std of correct vs incorrect label activations.
+
+Usage:
+    mean, std = analysis_val_set(model, val_inputs, val_targets)
+    # Use these thresholds in eval_val_set_light() for early-exit inference
+"""
+
 import numpy as np
 
 import torch

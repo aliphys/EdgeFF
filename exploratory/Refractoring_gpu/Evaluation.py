@@ -1,3 +1,39 @@
+"""
+Evaluation.py - Model Evaluation Functions
+==========================================
+
+This module provides evaluation functions for assessing Forward-Forward
+network performance on training, validation, and test sets.
+
+Functions:
+    print_results(labels, predictions)
+        Print F1-score and accuracy metrics
+    
+    eval_train_set(model, inputs, targets)
+        Evaluate model accuracy on training data
+    
+    eval_test_set(model, inputs, targets)
+        Evaluate model accuracy on test data
+    
+    eval_val_set(model, inputs, targets)
+        Evaluate model accuracy on validation data
+    
+    eval_val_set_light(model, inputs, targets, mean, std)
+        Early-exit evaluation using confidence thresholds
+        Returns accuracy and average layers used per sample
+    
+    eval_val_set_with_energy(model, inputs, targets, power_monitor, inference_metrics)
+        Evaluation with energy/latency measurement (for Jetson devices)
+
+Usage:
+    # Standard evaluation
+    eval_test_set(model, test_inputs, test_targets)
+    
+    # Early-exit evaluation
+    mean, std = analysis_val_set(model, val_inputs, val_targets)
+    eval_val_set_light(model, val_inputs, val_targets, mean, std)
+"""
+
 import torch
 
 from sklearn.metrics import f1_score, accuracy_score

@@ -1,3 +1,41 @@
+"""
+eval.py - Batch Inference Evaluation from W&B Sweep
+===================================================
+
+This script evaluates trained models from a W&B sweep for inference
+performance metrics including energy consumption and latency.
+
+Usage:
+    python eval.py --config eval_config.yaml
+
+Configuration (eval_config.yaml):
+    project: edgeff-network-width     # W&B project name
+    sweep_id: <sweep_id>              # Source sweep with trained models
+    dataset: MNIST                    # Dataset for evaluation
+    inference_batch_sizes: [1, 2, 8, 16, 32, 64, 128, 256, 512]
+    hw_interval_ms: 500               # Hardware monitoring interval
+
+Workflow:
+    1. Query W&B API for all runs in the specified sweep
+    2. For each run, download the trained model artifact
+    3. Run inference at multiple batch sizes
+    4. Measure energy and latency using hardware monitors (Jetson)
+    5. Log results back to W&B as an 'eval' job type run
+
+Metrics Logged:
+    - width: Network hidden layer width
+    - batch_size: Inference batch size
+    - latency_per_sample_ms: Inference latency per sample
+    - energy_per_sample_mj: Energy consumption per sample
+    - avg_power_mw: Average power during inference
+    - memory_mb: GPU memory usage
+    - accuracy: Model accuracy on test set
+
+Requirements:
+    - wandb API access
+    - Hardware monitoring (optional, for Jetson devices)
+"""
+
 import torch
 from torchvision.datasets import MNIST, FashionMNIST, SVHN, CIFAR10
 from torchvision.transforms import Compose, ToTensor, Normalize, Lambda

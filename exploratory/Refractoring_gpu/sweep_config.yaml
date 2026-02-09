@@ -1,41 +1,76 @@
-program: Main.py
+# ============================================================================
+# W&B Sweep Configuration - Full Grid Search
+# ============================================================================
+# This config runs a grid search across datasets, network widths, and seeds.
+# Total runs = 4 datasets × 7 widths × 2 cuda_modes × 3 seeds = 168 runs
+#
+# Usage:
+#   python run_sweep.py --config sweep_config.yaml --run-agent
+# ============================================================================
+
+program: Main.py                    # Entry point script
 command:
-  - ${env}
+  - ${env}                          # Preserve environment variables
   - python
   - ${program}
-  - ${args}
-method: grid
+  - ${args}                         # CLI args from parameters below
+
+method: grid                        # grid | random | bayes
+
 metric:
-  name: final/test_accuracy
-  goal: maximize
+  name: final/test_accuracy         # Metric to optimize
+  goal: maximize                    # maximize | minimize
+
 parameters:
+  # --------------------------------------------------------------------------
+  # Dataset Selection
+  # MNIST/FMNIST: 28×28 grayscale → 784 input neurons
+  # SVHN/CIFAR10: 32×32 RGB → 3072 input neurons (auto-adjusted in Main.py)
+  # --------------------------------------------------------------------------
   dataset:
     values:
-      - MNIST
-      - FMNIST
-      - SVHN
-      - CIFAR10
+      - MNIST                       # Handwritten digits
+      - FMNIST                      # Fashion items (harder)
+      - SVHN                        # Street View House Numbers (color)
+      - CIFAR10                     # Natural images (hardest)
+
+  # --------------------------------------------------------------------------
+  # Network Architecture: "input,hidden...,output"
+  # Note: Input dimension auto-adjusted based on dataset in Main.py
+  # --------------------------------------------------------------------------
   layers:
     values:
-      - "784,100,10"   # 1 hidden layer, width 100 (MNIST/FMNIST)
-      - "784,500,10"   # 1 hidden layer, width 500 (MNIST/FMNIST)
-      - "784,1000,10"  # 1 hidden layer, width 1000 (MNIST/FMNIST)
-      - "784,2000,10"  # 1 hidden layer, width 2000 (MNIST/FMNIST)
-      - "784,3000,10"  # 1 hidden layer, width 3000 (MNIST/FMNIST)
-      - "784,4000,10"  # 1 hidden layer, width 4000 (MNIST/FMNIST)
-      - "784,5000,10"  # 1 hidden layer, width 5000 (MNIST/FMNIST)
+      - "784,100,10"                # 1 hidden layer, width 100
+      - "784,500,10"                # 1 hidden layer, width 500
+      - "784,1000,10"               # 1 hidden layer, width 1000
+      - "784,2000,10"               # 1 hidden layer, width 2000
+      - "784,3000,10"               # 1 hidden layer, width 3000
+      - "784,4000,10"               # 1 hidden layer, width 4000
+      - "784,5000,10"               # 1 hidden layer, width 5000
+
+  # --------------------------------------------------------------------------
+  # Device Configuration
+  # --------------------------------------------------------------------------
   no-cuda:
     values:
-      - true   # Disable CUDA
-      - false  # Enable CUDA (default)
+      - true                        # CPU only
+      - false                       # Use GPU if available
+
+  # --------------------------------------------------------------------------
+  # Random Seeds for Reproducibility
+  # --------------------------------------------------------------------------
   seed:
     values:
       - 42
       - 123
       - 456
+
+  # --------------------------------------------------------------------------
+  # Training Hyperparameters (fixed for this sweep)
+  # --------------------------------------------------------------------------
   rep-epochs:
-    value: 20
+    value: 20                       # Representation (FF) training epochs
   softmax-epochs:
-    value: 20
+    value: 20                       # Softmax classifier training epochs
   train-batch-size:
-    value: 512
+    value: 512                      # Training mini-batch size

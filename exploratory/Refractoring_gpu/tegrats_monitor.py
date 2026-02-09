@@ -1,3 +1,49 @@
+"""
+tegrats_monitor.py - Hardware Monitoring for NVIDIA Jetson Devices
+==================================================================
+
+This module provides power, temperature, and utilization monitoring
+for NVIDIA Jetson devices (e.g., Jetson Orin) using tegrastats and
+INA3221 power sensors.
+
+Classes:
+    INA3221PowerMonitor
+        Read power consumption from INA3221 sysfs nodes.
+        Channels:
+            1: VDD_IN (Total Module Power)
+            2: VDD_CPU_GPU_CV (CPU + GPU + CV cores)
+            3: VDD_SOC (Memory subsystem, nvdec, nvenc, etc.)
+        
+    TegratsMonitor
+        Parse tegrastats CLI output for system metrics.
+        Captures: RAM usage, GPU%, CPU%, temperature
+        Runs in a background thread at configurable intervals.
+        
+    InferenceMetrics
+        Helper class to bracket inference and calculate energy/latency.
+        Methods:
+            start_inference() - Mark inference start time
+            end_inference() - Mark inference end time  
+            add_power_sample(timestamp, power) - Record power during inference
+            calculate_metrics(batch_size) - Compute energy_per_sample_mj, latency_ms
+
+Usage:
+    # Power monitoring
+    power_monitor = INA3221PowerMonitor()
+    metrics = power_monitor.get_power_metrics()
+    # Returns: {'VDD_IN_power_mw': ..., 'VDD_CPU_GPU_CV_power_mw': ..., ...}
+    
+    # System monitoring (background thread)
+    monitor = TegratsMonitor(interval_ms=500)
+    monitor.start()
+    # ... do work ...
+    latest = monitor.get_latest_stats()
+    monitor.stop()
+
+Note: This module only works on NVIDIA Jetson devices with tegrastats
+and INA3221 sysfs interfaces available.
+"""
+
 import glob
 import re
 import subprocess

@@ -1,3 +1,36 @@
+"""
+Train.py - Forward-Forward Network Model Definitions
+====================================================
+
+This module contains the core neural network classes implementing the
+Forward-Forward (FF) algorithm for training without backpropagation.
+
+Classes:
+    Net - Main network container with FF layers and softmax classifiers
+    Layer - Single FF layer (extends nn.Linear) with goodness-based training
+    SoftmaxLayer - Classification head using softmax with cross-entropy loss
+
+Key Functions:
+    overlay_y_on_x(x, y, max_value, is_color)
+        Embed one-hot label in first 10 pixels for positive/negative samples
+    
+    overlay_on_x_neutral(x, is_color)
+        Neutral embedding (0.1 values) for inference and softmax training
+
+The Forward-Forward Algorithm:
+    - Each layer trains locally using a "goodness" objective
+    - Positive samples (correct labels): maximize goodness = mean(h²)
+    - Negative samples (wrong labels): minimize goodness
+    - No gradient flows between layers (no backpropagation)
+
+Network Architecture:
+    - Input: flattened image (784 for grayscale, 3072 for RGB)
+    - Hidden layers: Layer with ReLU activation and L2 normalization
+    - Softmax layers: one per hidden layer, receives cumulative activations
+
+See ARCHITECTURE.md for detailed class hierarchy and data flow diagrams.
+"""
+
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn

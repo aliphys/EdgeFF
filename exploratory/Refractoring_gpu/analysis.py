@@ -1,3 +1,30 @@
+"""
+analysis.py - Visualization and Analysis of W&B Experiment Data
+===============================================================
+
+This script generates visualization plots from Weights & Biases experiment
+data, including latency, energy, power, and memory heatmaps.
+
+Usage:
+    python analysis.py --config analysis_config.yaml
+
+Generated Plots:
+    - latency_vs_width.png: Latency per sample vs network width (line plot)
+    - energy_vs_width.png: Energy per sample vs network width (line plot)
+    - latency_heatmap.png: Latency heatmap (width × batch_size)
+    - energy_heatmap.png: Energy heatmap (width × batch_size)
+    - power_heatmap.png: Power heatmap (width × batch_size)
+    - memory_heatmap.png: Memory usage heatmap (width × batch_size)
+
+Configuration (analysis_config.yaml):
+    project: edgeff-network-width    # W&B project name
+    sweep_id: <sweep_id>              # Source sweep for analysis
+
+Requirements:
+    - wandb API access (WANDB_API_KEY in .env)
+    - matplotlib, pandas, numpy
+"""
+
 import wandb
 import matplotlib.pyplot as plt
 import pandas as pd

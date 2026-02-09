@@ -1,2 +1,17 @@
-project: edgeff-network-width
-sweep_id: 9xqabsi3
+# ============================================================================
+# Analysis Configuration for Visualization
+# ============================================================================
+# This config specifies which W&B data to visualize.
+# Used by: python analysis.py --config analysis_config.yaml
+#
+# The analysis script will:
+#   1. Query the latest 'eval' run from the project
+#   2. Generate plots: latency_vs_width.png, energy_vs_width.png,
+#      latency_heatmap.png, energy_heatmap.png, power_heatmap.png,
+#      memory_heatmap.png
+# ============================================================================
+
+project: edgeff-network-width       # W&B project name
+
+# Sweep ID (used to filter data if needed)
+sweep_id: 9xqabsi3                   # Replace with your sweep ID

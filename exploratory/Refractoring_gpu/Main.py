@@ -1,3 +1,27 @@
+"""
+Main.py - Forward-Forward Network Training Entry Point
+======================================================
+
+This is the main training and evaluation orchestrator for the Forward-Forward
+neural network implementation. It handles:
+
+- Command-line argument parsing for all hyperparameters
+- Data loading for MNIST, Fashion-MNIST, SVHN, and CIFAR10 datasets
+- Two-phase training: representation learning + softmax classifier training
+- Weights & Biases integration for experiment tracking and sweeps
+- Hardware monitoring on NVIDIA Jetson devices (power, temperature, GPU%)
+
+Usage:
+    python Main.py --layers "784,200,200,10" --rep-epochs 10 --softmax-epochs 10
+    python Main.py --dataset CIFAR10 --layers "3072,500,500,10" --seed 42
+
+Key Functions:
+    main() - Main training loop compatible with W&B sweeps
+    dataset_loaders() - Create DataLoaders for supported datasets
+
+See LLMCONTEXT.md for a compact reference of CLI arguments and training flow.
+"""
+
 import torch
 from torchvision.datasets import MNIST, FashionMNIST, SVHN, CIFAR10
 from torchvision.transforms import Compose, ToTensor, Normalize, Lambda

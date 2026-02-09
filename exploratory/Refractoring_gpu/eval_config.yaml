@@ -1,5 +1,27 @@
-project: edgeff-network-width
-dataset: MNIST
+# ============================================================================
+# Evaluation Configuration for Inference Metrics
+# ============================================================================
+# This config specifies which W&B sweep to evaluate for inference performance.
+# Used by: python eval.py --config eval_config.yaml
+#
+# The eval script will:
+#   1. Download trained models from the specified sweep
+#   2. Run inference at each batch_size in inference_batch_sizes
+#   3. Measure latency and energy (on Jetson devices)
+#   4. Log results to W&B as an 'eval' job type
+# ============================================================================
+
+project: edgeff-network-width       # W&B project name
+
+# Sweep containing trained models to evaluate
+sweep_id: 9xqabsi3                   # Replace with your sweep ID
+
+# Dataset must match what models were trained on
+dataset: MNIST                      # MNIST | FMNIST | SVHN | CIFAR10
+
+# Batch sizes to test for inference throughput analysis
 inference_batch_sizes: [1, 2, 8, 16, 32, 64, 128, 256, 512]
-hw_interval_ms: 500
-sweep_id: 9xqabsi3
+
+# Hardware monitoring interval (Jetson only)
+# Lower values = more accurate energy measurement, higher overhead
+hw_interval_ms: 500                 # milliseconds

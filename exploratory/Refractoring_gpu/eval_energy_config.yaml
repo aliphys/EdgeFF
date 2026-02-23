@@ -1,0 +1,38 @@
+# eval_energy_config.yaml
+# Configuration for bimodal energy distribution analysis
+# ========================================================
+
+# Model source (use one of these)
+model_path: null  # Direct path to model file, or null to use sweep
+sweep_id: "9xqabsi3"  # W&B sweep ID to fetch model from
+
+# W&B settings
+project: "edgeff-network-width"
+
+# Dataset
+dataset: "MNIST"  # Options: MNIST, FMNIST, SVHN, CIFAR10
+num_samples: 10000  # Number of test samples to use
+
+# Inference settings
+batch_size: 32
+device: "cuda"  # Options: cuda, cpu
+
+# Experiment parameters
+iterations: 200  # Iterations per inference pattern
+
+# Cooldown durations to test (milliseconds)
+# These values are used to investigate how inter-inference delays
+# affect energy distribution and potentially trigger bimodal behavior
+cooldowns:
+  - 0      # Continuous (no delay)
+  - 50     # Short delay
+  - 100    # Medium-short delay
+  - 200    # Medium delay
+  - 500    # Medium-long delay
+  - 1000   # Long delay (1 second)
+
+# Hardware monitoring
+hw_interval_ms: 100  # Power sampling interval (do not change)
+
+# Output
+output_dir: "./energy_analysis"

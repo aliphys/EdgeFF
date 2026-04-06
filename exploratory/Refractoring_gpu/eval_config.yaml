@@ -24,4 +24,4 @@ inference_batch_sizes: [1, 2, 8, 16, 32, 64, 128, 256, 512]
 
 # Hardware monitoring interval (Jetson only)
 # Lower values = more accurate energy measurement, higher overhead
-hw_interval_ms: 500                 # milliseconds
+hw_interval_ms: 100                 # milliseconds

@@ -1,0 +1,11 @@
+# ============================================================================
+# Inference evaluation configuration
+# ============================================================================
+# This config is used by: python scripts/eval.py --config configs/eval.yaml
+# It specifies which trained sweep to evaluate and how to run inference.
+# ============================================================================
+project: edgeff-refactor
+sweep_id: 9xqabsi3
+dataset: MNIST
+inference_batch_sizes: [1, 2, 8, 16, 32, 64, 128, 256, 512]
+hw_interval_ms: 100

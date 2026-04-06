@@ -1,0 +1,168 @@
+"""
+Evaluation.py - Model Evaluation Functions
+==========================================
+
+This module provides evaluation functions for assessing Forward-Forward
+network performance on training, validation, and test sets.
+
+Functions:
+    print_results(labels, predictions)
+        Print F1-score and accuracy metrics
+
+    eval_train_set(model, inputs, targets)
+        Evaluate model accuracy on training data
+
+    eval_test_set(model, inputs, targets)
+        Evaluate model accuracy on test data
+
+    eval_val_set(model, inputs, targets)
+        Evaluate model accuracy on validation data
+
+    eval_val_set_light(model, inputs, targets, confidence_mean_vec, confidence_std_vec)
+        Early-exit evaluation using confidence thresholds
+
+    eval_with_inference_measurement(model, inputs, targets, hw_monitor, set_name, batch_size)
+        Evaluation with energy/latency measurement (for Jetson devices)
+
+Usage:
+    # Standard evaluation
+    eval_test_set(model, test_inputs, test_targets)
+
+    # Early-exit evaluation
+    mean, std = analysis_val_set(model, val_inputs, val_targets)
+    eval_val_set_light(model, val_inputs, targets, mean, std)
+"""
+
+import torch
+import numpy as np
+from sklearn.metrics import f1_score, accuracy_score
+from tqdm import tqdm
+
+
+def print_results(labels_vec, predictions_vec):
+    f1_performance = f1_score(labels_vec, predictions_vec, average='macro')
+    acc_performance = accuracy_score(labels_vec, predictions_vec)
+    print("\tF1-score: ", f1_performance)
+    print("\tAccuracy: ", acc_performance)
+
+
+def eval_train_set(model, inputs, targets):
+    num_train_samples = len(targets)
+    train_data_record_indices = range(0, num_train_samples)
+    batch_size = 5000
+    num_batches = int(num_train_samples / batch_size)
+    chunk_indices = np.array_split(train_data_record_indices, num_batches)
+    y_predicted = np.zeros(num_train_samples)
+    for i in range(num_batches):
+        x_ = inputs[chunk_indices[i]]
+        y_predicted[chunk_indices[i]] = model.predict_one_pass(x_, batch_size=batch_size).detach().cpu().numpy()
+    print("\nResults for the {}TRAIN{} set: ".format('\033[1m', '\033[0m'))
+    print_results(targets.detach().cpu().numpy(), y_predicted)
+    print('\tError:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
+
+
+def eval_test_set(model, inputs, targets):
+    num_test_samples = len(targets)
+    test_data_record_indices = range(0, num_test_samples)
+    batch_size = 5000
+    num_batches = int(num_test_samples / batch_size)
+    chunk_indices_test = np.array_split(test_data_record_indices, num_batches)
+    y_predicted = np.zeros(num_test_samples)
+    for i in range(num_batches):
+        x_ = inputs[chunk_indices_test[i]]
+        y_predicted[chunk_indices_test[i]] = model.predict_one_pass(x_, batch_size=batch_size).detach().cpu().numpy()
+    print("\nResults for the {}TEST{} set: ".format('\033[1m', '\033[0m'))
+    print_results(targets.detach().cpu().numpy(), y_predicted)
+    print('\tError:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
+
+
+def eval_val_set(model, inputs, targets):
+    num_test_samples = len(targets)
+    test_data_record_indices = range(0, num_test_samples)
+    batch_size = 5000
+    num_batches = int(num_test_samples / batch_size)
+    chunk_indices_validation = np.array_split(test_data_record_indices, num_batches)
+    y_predicted = np.zeros(num_test_samples)
+    for i in range(num_batches):
+        x_ = inputs[chunk_indices_validation[i]]
+        y_predicted[chunk_indices_validation[i]] = model.predict_one_pass(x_, batch_size=batch_size).detach().cpu().numpy()
+    print("\nResults for the {}VALIDATION{} set: ".format('\033[1m', '\033[0m'))
+    print_results(targets.detach().cpu().numpy(), y_predicted)
+    print('\tError:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
+
+
+def eval_val_set_light(model, inputs, targets, confidence_mean_vec, confidence_std_vec):
+    num_test_samples = len(targets)
+    test_data_record_indices = range(0, num_test_samples)
+    batch_size = 1
+    num_batches = int(num_test_samples / batch_size)
+    chunk_indices_validation = np.array_split(test_data_record_indices, num_batches)
+    y_predicted = np.zeros(num_test_samples)
+    predicted_with_layers_up_to = np.zeros(num_test_samples)
+    for i in tqdm(range(num_batches)):
+        x_ = inputs[chunk_indices_validation[i]]
+        pred, layers_used = model.light_predict_one_sample(x_, confidence_mean_vec, confidence_std_vec)
+        y_predicted[chunk_indices_validation[i]] = pred.cpu().numpy()
+        if hasattr(layers_used, 'cpu'):
+            predicted_with_layers_up_to[chunk_indices_validation[i]] = layers_used.cpu().numpy()
+        else:
+            predicted_with_layers_up_to[chunk_indices_validation[i]] = np.array(layers_used)
+    print("\nResults for the {}VALIDATION{} set based on light inference: ".format('\033[1m', '\033[0m'))
+    print_results(targets.detach().cpu().numpy(), y_predicted)
+    print('\tError:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
+    print("mean number of layers used: ", np.mean(predicted_with_layers_up_to))
+    values, counts = np.unique(predicted_with_layers_up_to, return_counts=True)
+    print("percentage for layers_up_to ", values, " : ", counts/num_test_samples)
+
+
+def eval_with_inference_measurement(model, inputs, targets, hw_monitor=None, set_name='test', batch_size=None):
+    num_samples = inputs.shape[0]
+    if batch_size is None:
+        batch_size = min(5000, num_samples)
+    else:
+        batch_size = min(batch_size, num_samples)
+    num_batches = int(np.ceil(num_samples / batch_size))
+    y_predicted = np.zeros(num_samples)
+    all_inference_metrics = []
+    for i in range(num_batches):
+        start_idx = i * batch_size
+        end_idx = min((i + 1) * batch_size, num_samples)
+        actual_batch_size = end_idx - start_idx
+        x_batch = inputs[start_idx:end_idx]
+        if hw_monitor:
+            hw_monitor.start_inference_measurement()
+        predictions = model.predict_one_pass(x_batch, batch_size=actual_batch_size)
+        memory_mb = torch.cuda.memory_allocated() / 1e6 if torch.cuda.is_available() else 0
+        if hw_monitor:
+            batch_metrics = hw_monitor.stop_inference_measurement(actual_batch_size)
+            if batch_metrics:
+                batch_metrics['memory_mb'] = memory_mb
+                all_inference_metrics.append(batch_metrics)
+        y_predicted[start_idx:end_idx] = predictions.detach().cpu().numpy()
+    accuracy = accuracy_score(targets.detach().cpu().numpy(), y_predicted)
+    f1 = f1_score(targets.detach().cpu().numpy(), y_predicted, average='macro')
+    error = 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item()
+    print(f"\nResults for the {set_name.upper()} set:")
+    print(f"\tF1-score: {f1}")
+    print(f"\tAccuracy: {accuracy}")
+    print(f"\tError: {error}")
+    results = {
+        f'{set_name}/accuracy': accuracy,
+        f'{set_name}/f1_score': f1,
+        f'{set_name}/error': error,
+    }
+    if all_inference_metrics:
+        avg_metrics = {
+            f'{set_name}/inference_latency_per_sample_ms': np.mean([m['inference/latency_per_sample_ms'] for m in all_inference_metrics]),
+            f'{set_name}/inference_energy_per_sample_mj': np.mean([m['inference/energy_per_sample_mj'] for m in all_inference_metrics]),
+            f'{set_name}/inference_avg_power_mw': np.mean([m['inference/avg_power_during_inference_mw'] for m in all_inference_metrics]),
+            f'{set_name}/inference_memory_mb': np.mean([m.get('memory_mb', 0) for m in all_inference_metrics]),
+            f'{set_name}/inference_total_latency_ms': sum([m['inference/total_batch_latency_ms'] for m in all_inference_metrics]),
+            f'{set_name}/inference_total_energy_mj': sum([m['inference/total_batch_energy_mj'] for m in all_inference_metrics]),
+        }
+        results.update(avg_metrics)
+        print(f"\nInference Metrics for {set_name.upper()} set:")
+        print(f"\tLatency per sample: {avg_metrics[f'{set_name}/inference_latency_per_sample_ms']:.4f} ms")
+        print(f"\tEnergy per sample: {avg_metrics[f'{set_name}/inference_energy_per_sample_mj']:.4f} mJ")
+        print(f"\tAverage power: {avg_metrics[f'{set_name}/inference_avg_power_mw']:.2f} mW")
+    return results

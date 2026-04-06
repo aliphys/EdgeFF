@@ -302,3 +302,6 @@ wandb/
 **/checkpoints/
 **/weights/
 
+temp_
+latest-run
+debug-internal.log

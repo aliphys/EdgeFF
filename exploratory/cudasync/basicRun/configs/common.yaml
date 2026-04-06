@@ -1,0 +1,7 @@
+# Shared default settings for basicRun configs
+# This file is automatically merged with each config file.
+project: edgeff-refactor
+data_root: data
+hw_interval_ms: 100
+default_dataset: MNIST
+default_inference_batch_sizes: [1, 2, 8, 16, 32, 64, 128, 256, 512]

@@ -1,0 +1,1 @@
+Here we will investigate what happens, when we use torch.cuda.synchronize.

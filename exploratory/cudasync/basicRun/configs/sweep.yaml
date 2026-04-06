@@ -1,0 +1,38 @@
+# ============================================================================
+# W&B sweep configuration
+# ============================================================================
+# This config is used by: python scripts/run_sweep.py --config configs/sweep.yaml
+# It defines a W&B sweep manifest for a grid search.
+# ============================================================================
+project: edgeff-refactor
+program: scripts/Main.py
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}
+method: grid
+metric:
+  name: final/test_accuracy
+  goal: maximize
+parameters:
+  dataset:
+    values: [MNIST]
+  layers:
+    values:
+      - "784,100,10"
+      - "784,200,10"
+      - "784,400,10"
+      - "784,800,10"
+      - "784,1600,10"
+      - "784,2000,10"
+  no_cuda:
+    values: [false]
+  seed:
+    values: [42]
+  rep_epochs:
+    value: 20
+  softmax_epochs:
+    value: 20
+  train_batch_size:
+    value: 512

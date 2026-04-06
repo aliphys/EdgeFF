@@ -1,0 +1,24 @@
+# ============================================================================
+# Single training run configuration
+# ============================================================================
+# This config is used by: python scripts/Main.py --config configs/run.yaml
+# It specifies one model training configuration with dataset, architecture,
+# and training hyperparameters.
+# ============================================================================
+project: edgeff-refactor
+
+dataset: MNIST
+layers: "784,100,10"
+rep_epochs: 2
+softmax_epochs: 2
+train_batch_size: 512
+test_batch_size: 512
+val_size: 10000
+no_train: false
+no_cuda: false
+seed: 42
+log_val_samples: 1000
+final_train_sample: 5000
+final_val_sample: 2000
+enable_hw_monitor: true
+hw_interval_ms: 100

@@ -1,0 +1,8 @@
+# ============================================================================
+# Analysis configuration for W&B inference results
+# ============================================================================
+# This config is used by: python scripts/analysis.py --config configs/analysis.yaml
+# It specifies which project and sweep to analyze.
+# ============================================================================
+project: edgeff-refactor
+sweep_id: 9xqabsi3

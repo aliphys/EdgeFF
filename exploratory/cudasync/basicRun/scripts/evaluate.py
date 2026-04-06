@@ -154,6 +154,9 @@ def main():
     if args.command == 'energy' and TegratsMonitor is not None:
         try:
             hw_monitor = TegratsMonitor(interval_ms=config.get('hw_interval_ms', 500))
+            power_mode = hw_monitor.get_power_mode()
+            if power_mode:
+                wandb.run.config.update({'system/power_mode': power_mode})
             hw_monitor.start()
         except Exception as exc:
             print(f'Hardware monitoring unavailable: {exc}')

@@ -5,7 +5,7 @@
 # It defines a W&B sweep manifest for a grid search.
 # ============================================================================
 project: edgeff-refactor
-program: scripts/Main.py
+program: scripts/train.py
 command:
   - ${env}
   - python
@@ -26,6 +26,11 @@ parameters:
       - "784,800,10"
       - "784,1600,10"
       - "784,2000,10"
+      - "784,5000,10"
+      - "784,10000,10"
+      - "784,20000,10"
+      - "784,40000,10"
+      - "784,80000,10"
   no_cuda:
     values: [false]
   seed:

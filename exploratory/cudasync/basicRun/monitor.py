@@ -111,6 +111,7 @@ class TegratsMonitor:
         self.power_monitor = power_monitor
         self.interval_ms = interval_ms
         self.wandb_run = wandb_run
+        self.power_mode = None
         self.inference_metrics = None
         self.power_history = []
         self.max_history_size = 1000
@@ -138,6 +139,21 @@ class TegratsMonitor:
             if power_match:
                 metrics['VDD_IN_power_mw'] = int(power_match.group(1))
         return metrics
+
+    def get_power_mode(self):
+        try:
+            output = subprocess.check_output(['nvpmodel', '-q'], text=True, stderr=subprocess.STDOUT)
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+            return None
+        mode_match = re.search(r'current mode\s*:\s*(.+)', output, re.IGNORECASE)
+        if mode_match:
+            mode_value = mode_match.group(1).strip()
+            label_match = re.search(r'\b(7W|7W-AI|7W-CPU|10W|15W|20W|25W|30W|40W|50W|MAXN|MAXN_SUPER)\b', output, re.IGNORECASE)
+            if label_match:
+                return label_match.group(1).upper()
+            return mode_value
+        label_match = re.search(r'\b(7W|7W-AI|7W-CPU|10W|15W|20W|25W|30W|40W|50W|MAXN|MAXN_SUPER)\b', output, re.IGNORECASE)
+        return label_match.group(1).upper() if label_match else None
 
     def monitor_loop(self):
         try:
@@ -189,6 +205,7 @@ class TegratsMonitor:
     def start(self):
         if self.running:
             return
+        self.power_mode = self.get_power_mode()
         self.running = True
         self.thread = threading.Thread(target=self.monitor_loop, daemon=True)
         self.thread.start()

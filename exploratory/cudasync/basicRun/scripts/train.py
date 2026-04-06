@@ -50,6 +50,28 @@ def resolve_config(config_path):
     return str(config_path)
 
 
+def normalize_arg_names(argv):
+    bool_flags = {'--no-cuda', '--enable-hw-monitor'}
+    normalized = []
+    for arg in argv:
+        if arg.startswith('--'):
+            if '=' in arg:
+                opt, val = arg.split('=', 1)
+                opt = opt.replace('_', '-')
+                if opt in bool_flags:
+                    if val.lower() in ('false', '0', 'no', 'n'):
+                        continue
+                    if val.lower() in ('true', '1', 'yes', 'y'):
+                        normalized.append(opt)
+                        continue
+                normalized.append(f'{opt}={val}')
+                continue
+            if '_' in arg:
+                arg = arg.replace('_', '-')
+        normalized.append(arg)
+    return normalized
+
+
 def dataset_loaders(dataset_name, train_batch_size, test_batch_size, val_size, seed):
     full_train, is_color = get_dataset(dataset_name, train=True)
     test_dataset, _ = get_dataset(dataset_name, train=False)
@@ -71,6 +93,7 @@ def dataset_loaders(dataset_name, train_batch_size, test_batch_size, val_size, s
 
 
 def main():
+    sys.argv = normalize_arg_names(sys.argv)
     parser = argparse.ArgumentParser(description='Train or evaluate a Forward-Forward model.')
     parser.add_argument('--config', type=str, default='configs/run.yaml', help='Path to run config YAML file')
     parser.add_argument('--project', type=str, default='edgeff-refactor', help='W&B project name')
@@ -151,6 +174,9 @@ def main():
     if args.enable_hw_monitor:
         try:
             hw_monitor = TegratsMonitor(interval_ms=args.hw_interval_ms)
+            power_mode = hw_monitor.get_power_mode()
+            if power_mode:
+                wandb_run.config.update({'system/power_mode': power_mode})
             hw_monitor.start()
             print('Hardware monitoring enabled.')
         except Exception as exc:
